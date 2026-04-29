@@ -223,7 +223,7 @@ function renderPortfolioHeatmap(id, rows) {
   const maxPnl = Math.max(...rows.map((position) => Math.abs(position.unrealized_pnl || position.daily_pnl || 0)), 1);
   const rectangles = treemap(rows.map((position) => ({
     ...position,
-    value: Math.max(position.market_value, 0) / totalValue
+    value: Math.max(position.market_value, 0)
   })), 0, 0, 100, 100);
 
   rectangles.forEach(({ item: position, x, y, width, height }) => {
@@ -231,9 +231,10 @@ function renderPortfolioHeatmap(id, rows) {
     const pnlClass = signedClass(pnl);
     const intensity = Math.min(0.72, 0.16 + Math.abs(pnl) / maxPnl * 0.56);
     const color = pnl < 0 ? "var(--danger)" : "var(--success)";
-    const hideDetails = width < 18 || height < 16;
     const tile = document.createElement("div");
-    tile.className = `heatmap-tile ${pnlClass}${hideDetails ? " heatmap-tile-compact" : ""}`;
+    tile.className = `heatmap-tile ${pnlClass}`;
+    tile.dataset.ticker = position.ticker;
+    tile.dataset.weight = String(position.current_percent);
     tile.style.cssText = [
       `left:${x}%`,
       `top:${y}%`,
@@ -248,33 +249,77 @@ function renderPortfolioHeatmap(id, rows) {
     `;
     list.appendChild(tile);
   });
+  applyHeatmapTextVisibility(list);
 }
 
 function treemap(items, x, y, width, height) {
-  if (items.length === 0) return [];
-  if (items.length === 1) {
-    return [{ item: items[0], x, y, width, height }];
+  const total = items.reduce((sum, item) => sum + Math.max(item.value, 0), 0);
+  if (total <= 0) return [];
+
+  const nodes = items
+    .map((item) => ({ item, area: (Math.max(item.value, 0) / total) * width * height }))
+    .sort((a, b) => b.area - a.area);
+  const rectangles = [];
+  let remaining = { x, y, width, height };
+  let row = [];
+
+  while (nodes.length > 0) {
+    const node = nodes[0];
+    const shortSide = Math.min(remaining.width, remaining.height);
+    if (row.length === 0 || worstAspect(row, shortSide) >= worstAspect([...row, node], shortSide)) {
+      row.push(node);
+      nodes.shift();
+    } else {
+      remaining = layoutTreemapRow(row, remaining, rectangles);
+      row = [];
+    }
   }
 
-  const sorted = [...items].sort((a, b) => b.value - a.value);
-  const total = sorted.reduce((sum, item) => sum + item.value, 0);
-  const first = sorted[0];
-  const remaining = sorted.slice(1);
-  const firstShare = first.value / total;
-
-  if (width >= height) {
-    const firstWidth = width * firstShare;
-    return [
-      { item: first, x, y, width: firstWidth, height },
-      ...treemap(remaining, x + firstWidth, y, width - firstWidth, height)
-    ];
+  if (row.length > 0) {
+    layoutTreemapRow(row, remaining, rectangles);
   }
 
-  const firstHeight = height * firstShare;
-  return [
-    { item: first, x, y, width, height: firstHeight },
-    ...treemap(remaining, x, y + firstHeight, width, height - firstHeight)
-  ];
+  return rectangles;
+}
+
+function worstAspect(row, side) {
+  if (row.length === 0) return Infinity;
+  const areas = row.map((node) => node.area);
+  const sum = areas.reduce((total, area) => total + area, 0);
+  const min = Math.min(...areas);
+  const max = Math.max(...areas);
+  if (min <= 0 || side <= 0) return Infinity;
+  return Math.max((side * side * max) / (sum * sum), (sum * sum) / (side * side * min));
+}
+
+function layoutTreemapRow(row, rect, output) {
+  const rowArea = row.reduce((total, node) => total + node.area, 0);
+  if (rect.width >= rect.height) {
+    const rowHeight = rowArea / rect.width;
+    let cursorX = rect.x;
+    row.forEach((node) => {
+      const nodeWidth = node.area / rowHeight;
+      output.push({ item: node.item, x: cursorX, y: rect.y, width: nodeWidth, height: rowHeight });
+      cursorX += nodeWidth;
+    });
+    return { x: rect.x, y: rect.y + rowHeight, width: rect.width, height: Math.max(0, rect.height - rowHeight) };
+  }
+
+  const rowWidth = rowArea / rect.height;
+  let cursorY = rect.y;
+  row.forEach((node) => {
+    const nodeHeight = node.area / rowWidth;
+    output.push({ item: node.item, x: rect.x, y: cursorY, width: rowWidth, height: nodeHeight });
+    cursorY += nodeHeight;
+  });
+  return { x: rect.x + rowWidth, y: rect.y, width: Math.max(0, rect.width - rowWidth), height: rect.height };
+}
+
+function applyHeatmapTextVisibility(list) {
+  list.querySelectorAll(".heatmap-tile").forEach((tile) => {
+    const box = tile.getBoundingClientRect();
+    tile.classList.toggle("heatmap-tile-compact", box.width < 60 || box.height < 40);
+  });
 }
 
 function renderStackList(id, rows, mapper) {
@@ -356,7 +401,7 @@ function renderLineAreaChart(id, values, labels = {}) {
   const span = max - min || 1;
   const width = 520;
   const height = 180;
-  const padding = { top: 16, right: 14, bottom: 24, left: 72 };
+  const padding = { top: 16, right: 14, bottom: 24, left: 112 };
   const points = visibleValues.map((value, index) => {
     const x = padding.left + (index / Math.max(visibleValues.length - 1, 1)) * (width - padding.left - padding.right);
     const y = height - padding.bottom - ((value - min) / span) * (height - padding.top - padding.bottom);
@@ -391,7 +436,7 @@ function renderPnlChart(id, values) {
   const visibleValues = values.slice(-85);
   const width = 380;
   const height = 180;
-  const padding = { top: 16, right: 12, bottom: 24, left: 70 };
+  const padding = { top: 16, right: 12, bottom: 24, left: 96 };
   const maxAbs = Math.max(...visibleValues.map((value) => Math.abs(value)), 1);
   const zeroY = padding.top + (height - padding.top - padding.bottom) / 2;
   const innerWidth = width - padding.left - padding.right;
@@ -439,7 +484,7 @@ function renderDrawdownChart(id, values) {
   const floor = Math.min(-0.01, Math.floor(min * 100 / 5) * 5 / 100);
   const width = 760;
   const height = 130;
-  const padding = { top: 14, right: 12, bottom: 24, left: 70 };
+  const padding = { top: 14, right: 12, bottom: 24, left: 82 };
   const innerWidth = width - padding.left - padding.right;
   const innerHeight = height - padding.top - padding.bottom;
   const points = visibleValues.map((value, index) => {
@@ -462,7 +507,7 @@ function renderDrawdownChart(id, values) {
       <line x1="${padding.left}" y1="${padding.top}" x2="${width - padding.right}" y2="${padding.top}" stroke="var(--line)" stroke-width="1.4"></line>
       <text x="${padding.left - 8}" y="${padding.top + 4}" text-anchor="end" fill="var(--muted)" font-size="11">0%</text>
       <text x="${padding.left - 8}" y="${height - padding.bottom + 4}" text-anchor="end" fill="var(--muted)" font-size="11">${percent.format(floor * 100)}%</text>
-      <polygon points="${area}" fill="var(--danger)" opacity="0.24"></polygon>
+      <polygon points="${area}" fill="var(--danger)" opacity="0.18"></polygon>
       <polyline points="${line}" fill="none" stroke="var(--danger)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></polyline>
     </svg>
   `;

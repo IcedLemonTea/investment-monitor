@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "description": "Local static dashboard assets for the IBKR investment monitor.",
   "scripts": {
+    "verify:layout": "node scripts/verify_dashboard_layout.mjs",
     "test": "echo \"No frontend test runner configured yet\""
   }
 }

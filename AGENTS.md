@@ -43,6 +43,7 @@ Build a local-only, read-only IBKR investment monitor that generates a localhost
 - After any dashboard data-source, rendering, or UI change, verify the rendered localhost dashboard, not only raw JSON endpoints or unit tests.
 - Before saying the dashboard shows real/local data, confirm the visible DOM no longer shows stale mock values where real generated data should appear.
 - Use `py scripts/verify_dashboard_render.py` for dashboard render verification on Windows; it uses installed Edge/Chrome headless and avoids Node/Playwright dependency issues.
+- Use `node scripts/verify_dashboard_layout.mjs` after dashboard layout changes. It must catch grid drift, clipping controls, chart baseline mismatch, invalid drawdown opacity, and heatmap text overflow before any UI work is considered complete.
 - Automatically add durable project documentation for user corrections that reveal a missed workflow rule.
 - For dashboard UI work, do not make the sidebar a floating card. It must be a structural viewport boundary anchored to the top, bottom, and left edges unless the user explicitly asks for a floating navigation tile.
 - Sidebar navigation text and icons must be large enough to read as primary navigation, and the brand mark must use a proper icon, not only initials.
@@ -53,6 +54,7 @@ Build a local-only, read-only IBKR investment monitor that generates a localhost
 - After layout changes, inspect a screenshot for structural alignment, chart overflow, wasted whitespace, and illegible truncated labels before committing.
 - Do not add visible controls that do not materially work. Remove useless search/status widgets and inactive benchmark buttons instead of leaving decorative controls on the dashboard.
 - Right-column cards must share a strict column width and spacing rhythm. Avoid orphaned low-value status cards that create vertical misalignment; put status details in the sidebar or screen-reader-only health output unless the card earns its space.
+- Main dashboard card rhythm is measurable: summary to allocation is 24px, allocation to performance is 24px, and allocation/performance left edges must match at the same viewport. Do not rely on screenshot eyeballing alone for these constraints.
 
 ## Review priorities
 

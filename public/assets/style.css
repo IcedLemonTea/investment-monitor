@@ -73,28 +73,28 @@ body {
 .brand {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
-  margin-bottom: 42px;
+  gap: 14px;
+  margin-bottom: 40px;
 }
 
 .brand-mark {
   display: grid;
-  width: 82px;
-  height: 82px;
+  width: 72px;
+  height: 72px;
   place-items: center;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: var(--panel-raised);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--accent-strong);
   font-weight: 800;
 }
 
 .brand-mark svg {
-  width: 52px;
-  height: 52px;
-  fill: color-mix(in srgb, var(--accent) 26%, transparent);
+  width: 72px;
+  height: 72px;
+  fill: color-mix(in srgb, var(--accent) 16%, transparent);
   stroke: var(--accent-strong);
-  stroke-width: 1.8;
+  stroke-width: 1.7;
 }
 
 .brand-mark .brand-line {
@@ -108,8 +108,8 @@ body {
 .brand strong {
   max-width: 180px;
   color: var(--text);
-  font-size: 21px;
-  line-height: 1.12;
+  font-size: 22px;
+  line-height: 1.05;
 }
 
 .side-nav p {
@@ -122,15 +122,15 @@ body {
 
 .side-nav a {
   display: grid;
-  grid-template-columns: 42px 1fr;
+  grid-template-columns: 54px 1fr;
   align-items: center;
-  gap: 18px;
-  min-height: 64px;
+  gap: 22px;
+  min-height: 72px;
   border-radius: 14px;
   color: var(--muted);
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 650;
-  padding: 0 18px;
+  padding: 0 20px;
   text-decoration: none;
   transition: background 160ms ease, color 160ms ease, transform 160ms ease;
 }
@@ -142,8 +142,8 @@ body {
 }
 
 .side-nav a svg {
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   fill: currentColor;
 }
 
@@ -191,19 +191,12 @@ body {
 }
 
 .pill-toggle::before {
-  position: absolute;
-  top: 4px;
-  bottom: 4px;
-  left: 4px;
-  width: calc(50% - 6px);
-  border-radius: 10px;
-  background: var(--accent);
+  display: none;
   content: "";
-  transition: transform 180ms ease;
 }
 
 .pill-toggle[data-active="right"]::before {
-  transform: translateX(calc(100% + 8px));
+  transform: none;
 }
 
 .pill-toggle button {
@@ -216,11 +209,13 @@ body {
   cursor: pointer;
   font-size: 14px;
   font-weight: 800;
-  transition: color 180ms ease;
+  transition: background 180ms ease, color 180ms ease, transform 180ms ease;
 }
 
 .pill-toggle button.active {
+  background: var(--accent);
   color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .pill-toggle button:disabled {
@@ -238,7 +233,7 @@ body {
 .summary-grid,
 .dashboard-grid,
 .panel {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .dashboard-heading {
@@ -338,7 +333,7 @@ h2 {
 
 .metric {
   min-height: 98px;
-  padding: 16px 18px;
+  padding: 24px;
 }
 
 .metric-primary {
@@ -357,8 +352,11 @@ h2 {
 .metric strong {
   display: block;
   margin-top: 8px;
-  font-size: 26px;
+  overflow: hidden;
+  font-size: clamp(20px, 1.7vw, 26px);
   line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .metric small {
@@ -368,22 +366,27 @@ h2 {
 .dashboard-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 318px;
-  gap: 16px;
+  gap: 24px;
   align-items: start;
 }
 
 .main-column,
 .side-column {
   display: grid;
-  gap: 16px;
+  gap: 24px;
   align-content: start;
   min-width: 0;
+}
+
+.main-column > .panel,
+.side-column > .panel {
+  margin-bottom: 0;
 }
 
 .panel {
   min-width: 0;
   overflow: hidden;
-  padding: 20px;
+  padding: 24px;
   transition: border-color 160ms ease, transform 160ms ease;
 }
 
@@ -446,17 +449,30 @@ h2 {
 }
 
 .chart-heading-with-controls {
-  align-items: flex-start;
-  min-height: 70px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  position: relative;
+  align-items: center;
+  min-height: 36px;
 }
 
 .chart-heading-with-controls > span {
-  min-width: 112px;
+  min-width: auto;
   white-space: nowrap;
 }
 
 .chart-heading-with-controls .panel-actions {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  justify-self: end;
+  margin-left: 0;
   max-width: 100%;
+  transform: translateY(-50%);
+}
+
+.chart-heading-with-controls .range-toggle {
+  margin-left: auto;
 }
 
 .allocation-bars {
@@ -549,14 +565,15 @@ h2 {
 
 .mini-chart-heading {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 8px;
+  min-height: 36px;
 }
 
 .history-viz > .chart-block:not(.full) > .mini-chart-heading {
-  min-height: 70px;
+  min-height: 36px;
 }
 
 .mini-chart-heading span,
@@ -684,7 +701,7 @@ h2 {
 
 .heatmap {
   position: relative;
-  height: 286px;
+  height: 252px;
   border-radius: 12px;
   overflow: hidden;
 }
