@@ -2,6 +2,7 @@ let snapshot;
 let historyData;
 let health;
 let displayCurrency = "USD";
+let theme = localStorage.getItem("investment-monitor-theme") || "dark";
 
 const percent = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
@@ -132,6 +133,7 @@ function renderHealth() {
 }
 
 function render() {
+  document.body.dataset.theme = theme;
   renderSummary();
   renderWarnings();
   renderAllocation();
@@ -147,6 +149,15 @@ async function init() {
     loadJson("data/history.example.json"),
     loadJson("data/health.example.json")
   ]);
+
+  const themeToggle = document.getElementById("themeToggle");
+  themeToggle.checked = theme === "dark";
+  document.body.dataset.theme = theme;
+  themeToggle.addEventListener("change", (event) => {
+    theme = event.target.checked ? "dark" : "light";
+    localStorage.setItem("investment-monitor-theme", theme);
+    document.body.dataset.theme = theme;
+  });
 
   const currencyToggle = document.getElementById("currencyToggle");
   currencyToggle.disabled = !snapshot.fx?.USD_MYR;

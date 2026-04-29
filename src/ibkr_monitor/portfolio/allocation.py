@@ -18,6 +18,8 @@ class AllocationRow:
     target_percent: float
     drift_percent: float
     rebalance_value: float
+    current_value: float
+    target_value: float
 
 
 def calculate_allocation(
@@ -33,13 +35,23 @@ def calculate_allocation(
         current_value = value_by_ticker.get(ticker, 0.0)
         current_percent = current_value / total_market_value if total_market_value else 0.0
         target_percent = target_by_ticker[ticker].target_weight
+        target_value = target_percent * total_market_value
         rows.append(
             AllocationRow(
                 ticker=ticker,
                 current_percent=current_percent,
                 target_percent=target_percent,
                 drift_percent=current_percent - target_percent,
-                rebalance_value=(target_percent * total_market_value) - current_value,
+                rebalance_value=target_value - current_value,
+                current_value=current_value,
+                target_value=target_value,
             )
         )
     return rows
+
+
+def allocation_by_ticker(
+    positions: list[PositionInput],
+    targets: list[Target],
+) -> dict[str, AllocationRow]:
+    return {row.ticker: row for row in calculate_allocation(positions, targets)}
