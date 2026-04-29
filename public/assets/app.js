@@ -122,7 +122,16 @@ function renderDrift() {
 function renderHistory() {
   const valueBody = document.getElementById("historyBody");
   valueBody.innerHTML = "";
-  historyData.portfolio_value.forEach((point) => {
+  const points = historyData.portfolio_value;
+  const pnlPoints = historyData.daily_pnl;
+
+  setText("historySummary", `${points.length} daily points from local history`);
+  renderMiniChart("portfolioValueChart", points.map((point) => point.net_liquidation));
+  renderMiniChart("dailyPnlChart", pnlPoints.map((point) => point.value), true);
+  setText("portfolioValueRange", rangeText(points.map((point) => point.net_liquidation)));
+  setText("dailyPnlRange", rangeText(pnlPoints.map((point) => point.value)));
+
+  points.slice(-30).forEach((point) => {
     const pnlPoint = historyData.daily_pnl.find((item) => item.date === point.date);
     const row = document.createElement("tr");
     row.innerHTML = `
@@ -132,6 +141,33 @@ function renderHistory() {
     `;
     valueBody.appendChild(row);
   });
+}
+
+function renderMiniChart(id, values, signed = false) {
+  const chart = document.getElementById(id);
+  chart.innerHTML = "";
+  if (values.length === 0) return;
+
+  const visibleValues = values.slice(-85);
+  const min = Math.min(...visibleValues);
+  const max = Math.max(...visibleValues);
+  const span = max - min || 1;
+  visibleValues.forEach((value) => {
+    const bar = document.createElement("i");
+    const height = signed
+      ? Math.max(4, (Math.abs(value) / Math.max(Math.abs(min), Math.abs(max), 1)) * 100)
+      : Math.max(4, ((value - min) / span) * 100);
+    bar.style.height = `${height}%`;
+    if (signed) {
+      bar.className = value < 0 ? "negative-bar" : "positive-bar";
+    }
+    chart.appendChild(bar);
+  });
+}
+
+function rangeText(values) {
+  if (values.length === 0) return "--";
+  return `${money(Math.min(...values))} - ${money(Math.max(...values))}`;
 }
 
 function renderHealth() {
@@ -154,7 +190,7 @@ function render() {
 async function init() {
   [snapshot, historyData, health] = await Promise.all([
     loadJsonWithFallback("data/latest.json", "data/latest.example.json"),
-    loadJson("data/history.example.json"),
+    loadJsonWithFallback("data/history.json", "data/history.example.json"),
     loadJsonWithFallback("data/health.json", "data/health.example.json")
   ]);
 

@@ -172,6 +172,56 @@ h2 {
   gap: 12px;
 }
 
+.history-viz {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.mini-chart-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.mini-chart-heading span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.mini-chart-heading strong {
+  font-size: 0.9rem;
+}
+
+.mini-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 120px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-raised);
+  padding: 10px;
+}
+
+.mini-chart i {
+  flex: 1 1 3px;
+  min-width: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--accent-strong);
+}
+
+.pnl-chart i.negative-bar {
+  background: var(--danger);
+}
+
+.pnl-chart i.positive-bar {
+  background: var(--success);
+}
+
 .allocation-row {
   display: grid;
   grid-template-columns: 64px minmax(120px, 1fr) 54px;
@@ -260,6 +310,10 @@ th {
 
   .summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .history-viz {
+    grid-template-columns: 1fr;
   }
 
   .actions {

@@ -119,7 +119,23 @@
       <section class="panel">
         <div class="panel-heading">
           <h2>Performance</h2>
-          <span>Example daily history</span>
+          <span id="historySummary">Daily history</span>
+        </div>
+        <div class="history-viz" aria-label="Portfolio value and daily P&L history">
+          <div>
+            <div class="mini-chart-heading">
+              <span>Portfolio value</span>
+              <strong id="portfolioValueRange">--</strong>
+            </div>
+            <div id="portfolioValueChart" class="mini-chart"></div>
+          </div>
+          <div>
+            <div class="mini-chart-heading">
+              <span>Daily P&amp;L</span>
+              <strong id="dailyPnlRange">--</strong>
+            </div>
+            <div id="dailyPnlChart" class="mini-chart pnl-chart"></div>
+          </div>
         </div>
         <div class="table-wrap">
           <table>
