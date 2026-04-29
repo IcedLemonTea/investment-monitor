@@ -4,7 +4,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from ibkr_monitor.dashboard.schema import SNAPSHOT_SCHEMA_VERSION
+from ibkr_monitor.portfolio.history import build_history_payload
 from ibkr_monitor.storage.atomic_json import write_json_atomic
+from ibkr_monitor.storage.sqlite_store import load_flex_account_values
 
 
 def dashboard_builder_available() -> bool:
@@ -152,4 +154,21 @@ def write_mock_poll_once(data_dir: Path, generated_at: str | None = None) -> dic
         "latest_path": str(data_dir / "latest.json"),
         "health_path": str(data_dir / "health.json"),
         "generated_at": timestamp,
+    }
+
+
+def write_history_from_db(db_path: Path, data_dir: Path) -> dict[str, object]:
+    account_values = load_flex_account_values(db_path)
+    history = build_history_payload(account_values)
+    history_path = data_dir / "history.json"
+    write_json_atomic(history_path, history)
+    portfolio_value = history["portfolio_value"]
+    daily_pnl = history["daily_pnl"]
+    if not isinstance(portfolio_value, list) or not isinstance(daily_pnl, list):
+        raise TypeError("History payload is malformed")
+    return {
+        "status": "ok",
+        "history_path": str(history_path),
+        "portfolio_value_points": len(portfolio_value),
+        "daily_pnl_points": len(daily_pnl),
     }
