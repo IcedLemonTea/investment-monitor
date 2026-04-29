@@ -127,6 +127,22 @@ def test_parse_flex_xml_normalizes_nav_summary_sections() -> None:
     assert values[("ChangeInNAV", "ending_value")] == 101000.0
     assert values[("EquitySummaryByReportDateInBase", "net_liquidation")] == 101000.0
     assert values[("OpenPosition", "position_value:QLD")] == 50000.0
+    assert statement.open_positions == [
+        {
+            "date": "20260429",
+            "account_id": "U0000001",
+            "ticker": "QLD",
+            "name": "",
+            "asset_class": "",
+            "currency": "USD",
+            "units": 0.0,
+            "unit_price": 0.0,
+            "market_value": 50000.0,
+            "unrealized_pnl": 0.0,
+            "conid": "",
+            "percent_of_nav": 0.0,
+        }
+    ]
 
 
 def test_parse_flex_xml_handles_namespaced_documents() -> None:

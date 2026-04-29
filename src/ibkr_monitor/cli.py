@@ -5,7 +5,11 @@ import json
 from pathlib import Path
 
 from ibkr_monitor.common.env import load_dotenv, require_env
-from ibkr_monitor.dashboard.build import write_history_from_db, write_mock_poll_once
+from ibkr_monitor.dashboard.build import (
+    write_history_from_db,
+    write_latest_from_flex_report,
+    write_mock_poll_once,
+)
 from ibkr_monitor.dashboard.server import serve_dashboard
 from ibkr_monitor.ibkr.flex import (
     fetch_flex_report,
@@ -66,6 +70,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path("runtime/data/private/monitor.sqlite3"),
     )
     build_history.add_argument("--data-dir", type=Path, default=Path("public/data"))
+    build_latest = dashboard_sub.add_parser(
+        "build-latest-flex",
+        help="Build latest.json from a local Flex XML report.",
+    )
+    build_latest.add_argument("path", type=Path)
+    build_latest.add_argument("--data-dir", type=Path, default=Path("public/data"))
+    build_latest.add_argument("--targets", type=Path, default=Path("config/targets.example.yaml"))
 
     return parser
 
@@ -87,6 +98,14 @@ def main() -> None:
         return
     if args.command == "dashboard" and args.dashboard_command == "build-history":
         print(json.dumps(write_history_from_db(args.db, args.data_dir), sort_keys=True))
+        return
+    if args.command == "dashboard" and args.dashboard_command == "build-latest-flex":
+        print(
+            json.dumps(
+                write_latest_from_flex_report(args.path, args.data_dir, args.targets),
+                sort_keys=True,
+            )
+        )
         return
     if args.command == "flex" and args.flex_command == "import-report":
         statement = parse_flex_file(args.path)

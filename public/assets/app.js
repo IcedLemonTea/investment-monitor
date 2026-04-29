@@ -221,7 +221,7 @@ async function refreshNow() {
   const status = document.getElementById("refreshStatus");
   const button = document.getElementById("refreshButton");
   button.disabled = true;
-  status.textContent = "Refreshing mock snapshot...";
+  status.textContent = "Refreshing local snapshot...";
   try {
     const response = await fetch("/api/refresh-now", { method: "POST" });
     if (!response.ok) {
@@ -233,7 +233,7 @@ async function refreshNow() {
       loadJson("data/health.json")
     ]);
     render();
-    status.textContent = "Mock refresh complete.";
+    status.textContent = `${snapshot.source.toUpperCase()} refresh complete.`;
   } catch (error) {
     status.textContent = error.message;
   } finally {

@@ -40,6 +40,10 @@ Build a local-only, read-only IBKR investment monitor that generates a localhost
 - Write dashboard JSON atomically.
 - Add tests for every normalizer, parser, endpoint policy, and snapshot schema.
 - Update docs when changing data contracts or connection behavior.
+- After any dashboard data-source, rendering, or UI change, verify the rendered localhost dashboard, not only raw JSON endpoints or unit tests.
+- Before saying the dashboard shows real/local data, confirm the visible DOM no longer shows stale mock values where real generated data should appear.
+- Use `py scripts/verify_dashboard_render.py` for dashboard render verification on Windows; it uses installed Edge/Chrome headless and avoids Node/Playwright dependency issues.
+- Automatically add durable project documentation for user corrections that reveal a missed workflow rule.
 
 ## Review priorities
 

@@ -21,6 +21,7 @@ class FlexStatement:
     realized_pnl: list[NormalizedRow]
     trades: list[NormalizedRow]
     account_values: list[NormalizedRow]
+    open_positions: list[NormalizedRow]
 
 
 @dataclass(frozen=True)
@@ -43,6 +44,7 @@ def parse_flex_xml(xml: str) -> FlexStatement:
     realized_pnl: list[NormalizedRow] = []
     trades: list[NormalizedRow] = []
     account_values: list[NormalizedRow] = []
+    open_positions: list[NormalizedRow] = []
 
     for element in root.iter():
         tag = _local_name(element.tag)
@@ -77,6 +79,7 @@ def parse_flex_xml(xml: str) -> FlexStatement:
             account_values.extend(_equity_summary_rows(attrs))
         elif tag == "OpenPosition":
             account_values.append(_open_position_value_row(attrs))
+            open_positions.append(_open_position_row(attrs))
 
     return FlexStatement(
         dividends=dividends,
@@ -84,6 +87,7 @@ def parse_flex_xml(xml: str) -> FlexStatement:
         realized_pnl=realized_pnl,
         trades=trades,
         account_values=account_values,
+        open_positions=open_positions,
     )
 
 
@@ -232,6 +236,23 @@ def _open_position_value_row(attrs: dict[str, str]) -> NormalizedRow:
         "currency": _first(attrs, "currency"),
         "section": "OpenPosition",
         "value": _number(_first(attrs, "positionValue")),
+    }
+
+
+def _open_position_row(attrs: dict[str, str]) -> NormalizedRow:
+    return {
+        "date": _first(attrs, "reportDate"),
+        "account_id": _first(attrs, "accountId", "accountID", "account"),
+        "ticker": _first(attrs, "symbol", "underlyingSymbol"),
+        "name": _first(attrs, "description"),
+        "asset_class": _first(attrs, "assetCategory", "assetClass"),
+        "currency": _first(attrs, "currency"),
+        "units": _number(_first(attrs, "position")),
+        "unit_price": _number(_first(attrs, "markPrice", "openPrice")),
+        "market_value": _number(_first(attrs, "positionValue")),
+        "unrealized_pnl": _number(_first(attrs, "fifoPnlUnrealized")),
+        "conid": _first(attrs, "conid"),
+        "percent_of_nav": _number(_first(attrs, "percentOfNAV")),
     }
 
 
