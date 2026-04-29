@@ -7,163 +7,237 @@
     <link rel="stylesheet" href="assets/style.css">
   </head>
   <body>
-    <main class="shell">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">Local IBKR dashboard</p>
-          <h1>Investment Monitor</h1>
-          <p class="meta">
-            <span id="lastRefresh">--</span>
-            <span id="dataSource">mock</span>
-          </p>
-        </div>
-        <div class="actions">
-          <label class="toggle">
-            <input id="themeToggle" type="checkbox" checked>
-            <span>Dark</span>
-          </label>
-          <label class="toggle">
-            <input id="currencyToggle" type="checkbox">
-            <span>MYR</span>
-          </label>
-          <button id="refreshButton" class="refresh-button" type="button">Refresh</button>
-        </div>
-      </header>
-
-      <section id="staleWarning" class="warning" hidden></section>
-      <p id="refreshStatus" class="status" aria-live="polite"></p>
-
-      <section class="summary-grid" aria-label="Portfolio summary">
-        <article class="metric">
-          <span>Net liquidation</span>
-          <strong id="netLiquidation">$0.00</strong>
-        </article>
-        <article class="metric">
-          <span>Daily P&amp;L</span>
-          <strong id="dailyPnl">$0.00</strong>
-        </article>
-        <article class="metric">
-          <span>Unrealized P&amp;L</span>
-          <strong id="unrealizedPnl">$0.00</strong>
-        </article>
-        <article class="metric">
-          <span>Realized P&amp;L</span>
-          <strong id="realizedPnl">$0.00</strong>
-        </article>
-        <article class="metric">
-          <span>Margin / exposure</span>
-          <strong id="marginValue">$0.00</strong>
-        </article>
-        <article class="metric">
-          <span>Total market value</span>
-          <strong id="totalMarketValue">$0.00</strong>
-        </article>
-      </section>
-
-      <section class="panel">
-        <div class="panel-heading">
-          <h2>Target vs Actual Allocation</h2>
-          <span>Actual bars with target markers</span>
-        </div>
-        <div id="allocationChart" class="chart-placeholder" role="img" aria-label="Target vs actual allocation"></div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-heading">
-          <h2>Drift</h2>
-          <span>Suggestions only, no execution</span>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Ticker</th>
-                <th>Target %</th>
-                <th>Current %</th>
-                <th>Drift %</th>
-                <th>Rebalance value</th>
-              </tr>
-            </thead>
-            <tbody id="driftBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-heading">
-          <h2>Positions</h2>
-          <span>Statement holdings</span>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Ticker</th>
-                <th>Name</th>
-                <th>Units</th>
-                <th>Unit price</th>
-                <th>Market value</th>
-                <th>Current %</th>
-                <th>Target %</th>
-                <th>Drift %</th>
-                <th>Unrealized P&amp;L</th>
-                <th>Daily P&amp;L</th>
-                <th>Currency</th>
-              </tr>
-            </thead>
-            <tbody id="positionsBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-heading">
-          <h2>Performance</h2>
-          <span id="historySummary">Daily history</span>
-        </div>
-        <div class="history-viz" aria-label="Portfolio value and daily P&L history">
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Primary navigation">
+        <div class="brand">
+          <span class="brand-mark">IM</span>
           <div>
-            <div class="mini-chart-heading">
-              <span>Portfolio value</span>
-              <strong id="portfolioValueRange">--</strong>
-            </div>
-            <div id="portfolioValueChart" class="mini-chart"></div>
-          </div>
-          <div>
-            <div class="mini-chart-heading">
-              <span>Daily P&amp;L</span>
-              <strong id="dailyPnlRange">--</strong>
-            </div>
-            <div id="dailyPnlChart" class="mini-chart pnl-chart"></div>
+            <strong>Investment</strong>
+            <span>Monitor</span>
           </div>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Portfolio value</th>
-                <th>Daily P&amp;L</th>
-              </tr>
-            </thead>
-            <tbody id="historyBody"></tbody>
-          </table>
-        </div>
-      </section>
 
-      <section class="panel">
-        <div class="panel-heading">
-          <h2>Data Health</h2>
-          <span id="healthStatus">example</span>
+        <nav class="side-nav">
+          <p>Menu</p>
+          <a class="active" href="#dashboard"><span>DB</span>Dashboard</a>
+          <a href="#allocation"><span>AL</span>Allocation</a>
+          <a href="#positions"><span>PO</span>Positions</a>
+          <a href="#performance"><span>PF</span>Performance</a>
+          <a href="#health"><span>HT</span>Data Health</a>
+        </nav>
+
+        <div class="sidebar-card">
+          <span>Source</span>
+          <strong id="sidebarSource">--</strong>
+          <small id="sidebarRefresh">--</small>
         </div>
-        <dl class="health-list">
-          <dt>Last successful refresh</dt>
-          <dd id="lastSuccessfulRefresh">--</dd>
-          <dt>Status</dt>
-          <dd id="healthMessage">--</dd>
-        </dl>
-      </section>
-    </main>
+      </aside>
+
+      <main class="dashboard" id="dashboard">
+        <header class="utility-bar">
+          <label class="search-box">
+            <span>Search</span>
+            <input id="tickerSearch" type="search" placeholder="Filter ticker or name">
+          </label>
+          <div class="actions">
+            <label class="toggle">
+              <input id="themeToggle" type="checkbox" checked>
+              <span>Dark</span>
+            </label>
+            <label class="toggle">
+              <input id="currencyToggle" type="checkbox">
+              <span>MYR</span>
+            </label>
+            <button id="refreshButton" class="refresh-button" type="button">Refresh</button>
+          </div>
+        </header>
+
+        <section class="dashboard-heading">
+          <div>
+            <p class="eyebrow">Local IBKR dashboard</p>
+            <h1>Investment Monitor</h1>
+            <p class="meta">
+              <span id="lastRefresh">--</span>
+              <span id="dataSource">mock</span>
+            </p>
+          </div>
+          <div class="status-pill" id="refreshStatus" aria-live="polite">Ready</div>
+        </section>
+
+        <section id="staleWarning" class="warning" hidden></section>
+
+        <section class="summary-grid" aria-label="Portfolio summary">
+          <article class="metric metric-primary">
+            <span>Net liquidation</span>
+            <strong id="netLiquidation">$0.00</strong>
+            <small id="netLiquidationHint">Statement value</small>
+          </article>
+          <article class="metric">
+            <span>Daily P&amp;L</span>
+            <strong id="dailyPnl">$0.00</strong>
+            <small>Latest daily change</small>
+          </article>
+          <article class="metric">
+            <span>Unrealized P&amp;L</span>
+            <strong id="unrealizedPnl">$0.00</strong>
+            <small>Open positions</small>
+          </article>
+          <article class="metric">
+            <span>Total market value</span>
+            <strong id="totalMarketValue">$0.00</strong>
+            <small>Invested exposure</small>
+          </article>
+        </section>
+
+        <section class="dashboard-grid">
+          <div class="main-column">
+            <section class="panel" id="allocation">
+              <div class="panel-heading">
+                <div>
+                  <h2>Allocation Analytics</h2>
+                  <span>Current position weights against target markers</span>
+                </div>
+                <strong id="allocationCount">--</strong>
+              </div>
+              <div id="allocationBars" class="allocation-bars" aria-label="Allocation bar chart"></div>
+            </section>
+
+            <section class="panel" id="performance">
+              <div class="panel-heading">
+                <div>
+                  <h2>Performance</h2>
+                  <span id="historySummary">Daily history</span>
+                </div>
+                <strong id="portfolioValueRange">--</strong>
+              </div>
+              <div class="history-viz" aria-label="Portfolio value and daily P&L history">
+                <div>
+                  <div class="mini-chart-heading">
+                    <span>Portfolio value</span>
+                  </div>
+                  <div id="portfolioValueChart" class="mini-chart"></div>
+                </div>
+                <div>
+                  <div class="mini-chart-heading">
+                    <span>Daily P&amp;L</span>
+                    <strong id="dailyPnlRange">--</strong>
+                  </div>
+                  <div id="dailyPnlChart" class="mini-chart pnl-chart"></div>
+                </div>
+              </div>
+              <div class="table-wrap compact-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Portfolio value</th>
+                      <th>Daily P&amp;L</th>
+                    </tr>
+                  </thead>
+                  <tbody id="historyBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <div class="side-column">
+            <section class="panel target-card">
+              <div class="panel-heading">
+                <div>
+                  <h2>Target Alignment</h2>
+                  <span>Weighted allocation fit</span>
+                </div>
+              </div>
+              <div class="gauge">
+                <div class="gauge-ring" id="targetGauge">
+                  <strong id="targetAlignment">--</strong>
+                  <span>aligned</span>
+                </div>
+              </div>
+              <div id="topDriftList" class="stack-list"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Top Positions</h2>
+                  <span>Largest statement holdings</span>
+                </div>
+              </div>
+              <div id="topPositionsList" class="stack-list"></div>
+            </section>
+
+            <section class="panel refresh-card" id="health">
+              <div class="panel-heading">
+                <div>
+                  <h2>Data Health</h2>
+                  <span id="healthStatus">example</span>
+                </div>
+              </div>
+              <dl class="health-list">
+                <dt>Last refresh</dt>
+                <dd id="lastSuccessfulRefresh">--</dd>
+                <dt>Status</dt>
+                <dd id="healthMessage">--</dd>
+              </dl>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel" id="drift">
+          <div class="panel-heading">
+            <div>
+              <h2>Drift</h2>
+              <span>Suggestions only, no execution</span>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ticker</th>
+                  <th>Target %</th>
+                  <th>Current %</th>
+                  <th>Drift %</th>
+                  <th>Rebalance value</th>
+                </tr>
+              </thead>
+              <tbody id="driftBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel" id="positions">
+          <div class="panel-heading">
+            <div>
+              <h2>Positions</h2>
+              <span>Statement holdings</span>
+            </div>
+            <strong id="positionCount">--</strong>
+          </div>
+          <div class="table-wrap">
+            <table class="positions-table">
+              <thead>
+                <tr>
+                  <th>Ticker</th>
+                  <th>Name</th>
+                  <th>Units</th>
+                  <th>Unit price</th>
+                  <th>Market value</th>
+                  <th>Current %</th>
+                  <th>Target %</th>
+                  <th>Drift %</th>
+                  <th>Unrealized P&amp;L</th>
+                  <th>Daily P&amp;L</th>
+                  <th>Currency</th>
+                </tr>
+              </thead>
+              <tbody id="positionsBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
 
     <script src="vendor/chart.umd.js"></script>
     <script src="assets/app.js"></script>

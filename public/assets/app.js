@@ -1,6 +1,7 @@
 let snapshot;
 let historyData;
 let health;
+let filteredPositions = [];
 let displayCurrency = "USD";
 let theme = localStorage.getItem("investment-monitor-theme") || "dark";
 
@@ -48,11 +49,11 @@ function renderSummary() {
   setText("netLiquidation", money(snapshot.account.net_liquidation));
   setText("dailyPnl", money(snapshot.account.daily_pnl));
   setText("unrealizedPnl", money(snapshot.account.unrealized_pnl));
-  setText("realizedPnl", money(snapshot.account.realized_pnl));
-  setText("marginValue", money(snapshot.account.margin_value));
   setText("totalMarketValue", money(snapshot.account.total_market_value));
   setText("lastRefresh", formatLocalDateTime(snapshot.generated_at));
   setText("dataSource", `${snapshot.source} / ${snapshot.mode}`);
+  setText("sidebarSource", `${snapshot.source} / ${snapshot.mode}`);
+  setText("sidebarRefresh", formatLocalDateTime(snapshot.generated_at));
 }
 
 function renderWarnings() {
@@ -63,36 +64,39 @@ function renderWarnings() {
 }
 
 function renderAllocation() {
-  const chart = document.getElementById("allocationChart");
+  const chart = document.getElementById("allocationBars");
   chart.innerHTML = "";
   const maxAllocation = Math.max(
-    ...snapshot.positions.flatMap((position) => [
+    ...filteredPositions.flatMap((position) => [
       position.current_percent,
       position.target_percent
     ]),
     0.01
   );
-  snapshot.positions.forEach((position) => {
-    const actualWidth = (position.current_percent / maxAllocation) * 100;
-    const targetLeft = Math.min((position.target_percent / maxAllocation) * 100, 100);
+
+  filteredPositions.forEach((position) => {
+    const actualHeight = Math.max(3, (position.current_percent / maxAllocation) * 100);
+    const targetBottom = Math.min((position.target_percent / maxAllocation) * 100, 100);
     const row = document.createElement("div");
-    row.className = "allocation-row";
+    row.className = "allocation-bar";
     row.innerHTML = `
-      <span>${position.ticker}</span>
-      <div class="bar" aria-hidden="true">
-        <i class="actual" style="width: ${actualWidth}%"></i>
-        <i class="target" style="left: ${targetLeft}%"></i>
+      <div class="allocation-track" title="${escapeHtml(position.name)}">
+        <i class="allocation-fill" style="height: ${actualHeight}%"></i>
+        <i class="allocation-target" style="bottom: ${targetBottom}%"></i>
       </div>
-      <strong>${percent.format(position.current_percent * 100)}%</strong>
+      <strong>${position.ticker}</strong>
+      <span>${percent.format(position.current_percent * 100)}%</span>
     `;
     chart.appendChild(row);
   });
+
+  setText("allocationCount", `${filteredPositions.length} holdings`);
 }
 
 function renderPositions() {
   const body = document.getElementById("positionsBody");
   body.innerHTML = "";
-  snapshot.positions.forEach((position) => {
+  filteredPositions.forEach((position) => {
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${position.ticker}</td>
@@ -109,12 +113,13 @@ function renderPositions() {
     `;
     body.appendChild(row);
   });
+  setText("positionCount", `${filteredPositions.length} shown`);
 }
 
 function renderDrift() {
   const body = document.getElementById("driftBody");
   body.innerHTML = "";
-  snapshot.positions.forEach((position) => {
+  filteredPositions.forEach((position) => {
     const targetValue = snapshot.account.total_market_value * position.target_percent;
     const rebalanceValue = targetValue - position.market_value;
     const row = document.createElement("tr");
@@ -126,6 +131,52 @@ function renderDrift() {
       <td class="${signedClass(rebalanceValue)}">${money(rebalanceValue)}</td>
     `;
     body.appendChild(row);
+  });
+}
+
+function renderTopCards() {
+  const topPositions = [...snapshot.positions]
+    .sort((a, b) => b.market_value - a.market_value)
+    .slice(0, 5);
+  renderStackList("topPositionsList", topPositions, (position) => ({
+    avatar: position.ticker.slice(0, 2),
+    title: position.ticker,
+    subtitle: position.name,
+    value: money(position.market_value)
+  }));
+
+  const topDrift = [...snapshot.positions]
+    .sort((a, b) => Math.abs(b.drift_percent) - Math.abs(a.drift_percent))
+    .slice(0, 4);
+  renderStackList("topDriftList", topDrift, (position) => ({
+    avatar: position.ticker.slice(0, 2),
+    title: `${position.ticker} drift`,
+    subtitle: `${percent.format(position.current_percent * 100)}% current`,
+    value: `${percent.format(position.drift_percent * 100)}%`,
+    className: signedClass(position.drift_percent)
+  }));
+
+  const alignment = targetAlignment(snapshot.positions);
+  setText("targetAlignment", `${Math.round(alignment * 100)}%`);
+  document.getElementById("targetGauge").style.setProperty("--gauge", `${alignment * 360}deg`);
+}
+
+function renderStackList(id, rows, mapper) {
+  const list = document.getElementById(id);
+  list.innerHTML = "";
+  rows.forEach((row) => {
+    const item = mapper(row);
+    const element = document.createElement("div");
+    element.className = "stack-item";
+    element.innerHTML = `
+      <div class="avatar">${escapeHtml(item.avatar)}</div>
+      <div>
+        <strong>${escapeHtml(item.title)}</strong>
+        <span title="${escapeHtml(item.subtitle)}">${escapeHtml(item.subtitle)}</span>
+      </div>
+      <strong class="${item.className || ""}">${escapeHtml(item.value)}</strong>
+    `;
+    list.appendChild(element);
   });
 }
 
@@ -141,7 +192,7 @@ function renderHistory() {
   setText("portfolioValueRange", rangeText(points.map((point) => point.net_liquidation)));
   setText("dailyPnlRange", rangeText(pnlPoints.map((point) => point.value)));
 
-  points.slice(-30).forEach((point) => {
+  points.slice(-14).forEach((point) => {
     const pnlPoint = historyData.daily_pnl.find((item) => item.date === point.date);
     const row = document.createElement("tr");
     row.innerHTML = `
@@ -186,6 +237,26 @@ function renderHealth() {
   setText("lastSuccessfulRefresh", formatLocalDateTime(health.last_successful_refresh));
 }
 
+function targetAlignment(positions) {
+  const totalDrift = positions.reduce((total, position) => {
+    return total + Math.abs(position.drift_percent);
+  }, 0);
+  return Math.max(0, Math.min(1, 1 - totalDrift / 2));
+}
+
+function applyFilter() {
+  const query = document.getElementById("tickerSearch").value.trim().toLowerCase();
+  filteredPositions = snapshot.positions.filter((position) => {
+    return (
+      position.ticker.toLowerCase().includes(query) ||
+      position.name.toLowerCase().includes(query)
+    );
+  });
+  renderAllocation();
+  renderPositions();
+  renderDrift();
+}
+
 function formatLocalDateTime(value) {
   return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
@@ -207,11 +278,13 @@ function escapeHtml(value) {
 
 function render() {
   document.body.dataset.theme = theme;
+  filteredPositions = [...snapshot.positions];
   renderSummary();
   renderWarnings();
   renderAllocation();
   renderPositions();
   renderDrift();
+  renderTopCards();
   renderHistory();
   renderHealth();
 }
@@ -239,6 +312,7 @@ async function init() {
     render();
   });
 
+  document.getElementById("tickerSearch").addEventListener("input", applyFilter);
   document.getElementById("refreshButton").addEventListener("click", () => {
     refreshNow();
   });
