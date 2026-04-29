@@ -44,6 +44,13 @@ Build a local-only, read-only IBKR investment monitor that generates a localhost
 - Before saying the dashboard shows real/local data, confirm the visible DOM no longer shows stale mock values where real generated data should appear.
 - Use `py scripts/verify_dashboard_render.py` for dashboard render verification on Windows; it uses installed Edge/Chrome headless and avoids Node/Playwright dependency issues.
 - Automatically add durable project documentation for user corrections that reveal a missed workflow rule.
+- For dashboard UI work, do not make the sidebar a floating card. It must be a structural viewport boundary anchored to the top, bottom, and left edges unless the user explicitly asks for a floating navigation tile.
+- Sidebar navigation text and icons must be large enough to read as primary navigation, and the brand mark must use a proper icon, not only initials.
+- Related sidebar controls must share the same pill/segmented-control style, dimensions, animation behavior, and visual weight.
+- Do not use oversized primary buttons for secondary local actions in the sidebar. Prefer subtle icon buttons near the data they affect, such as refresh beside the timestamp.
+- Time-series and risk charts must include visible axes or axis labels, equalized chart heights where charts sit side by side, and correct y-axis domains. Drawdown charts must anchor 0% at the top and scale downward to slightly beyond the maximum drawdown.
+- Heatmap colors must encode P&L direction and magnitude on a red-to-green scale. Hide text in heatmap cells that are too small to render legibly and rely on tooltips for details.
+- After layout changes, inspect a screenshot for structural alignment, chart overflow, wasted whitespace, and illegible truncated labels before committing.
 
 ## Review priorities
 

@@ -63,6 +63,18 @@ function renderSummary() {
   setText("sidebarRefresh", formatLocalDateTime(snapshot.generated_at));
 }
 
+function updateThemeButtons() {
+  const lightButton = document.getElementById("lightButton");
+  const darkButton = document.getElementById("darkButton");
+  const themePill = document.querySelector(".theme-pill");
+  if (!lightButton || !darkButton || !themePill) return;
+  lightButton.classList.toggle("active", theme === "light");
+  darkButton.classList.toggle("active", theme === "dark");
+  themePill.dataset.active = theme === "dark" ? "right" : "left";
+  lightButton.setAttribute("aria-pressed", String(theme === "light"));
+  darkButton.setAttribute("aria-pressed", String(theme === "dark"));
+}
+
 function renderWarnings() {
   const warning = document.getElementById("staleWarning");
   const visibleWarnings = snapshot.warnings.filter((item) => item.code !== "FLEX_STATEMENT_DATA");
@@ -208,18 +220,24 @@ function renderPortfolioHeatmap(id, rows) {
   list.innerHTML = "";
 
   const maxValue = Math.max(...rows.map((position) => position.market_value), 1);
+  const maxPnl = Math.max(...rows.map((position) => Math.abs(position.unrealized_pnl || position.daily_pnl || 0)), 1);
   rows.forEach((position, index) => {
     const share = Math.max(position.current_percent, position.market_value / maxValue / 10);
     const columnSpan = Math.max(1, Math.min(6, Math.round(share * 12)));
     const rowSpan = Math.max(1, Math.min(3, Math.round(share * 7)));
-    const pnlClass = signedClass(position.unrealized_pnl || position.daily_pnl || position.drift_percent);
+    const pnl = position.daily_pnl || position.unrealized_pnl || 0;
+    const pnlClass = signedClass(pnl);
+    const intensity = Math.min(0.72, 0.16 + Math.abs(pnl) / maxPnl * 0.56);
+    const color = pnl < 0 ? "var(--danger)" : "var(--success)";
+    const hideDetails = columnSpan < 2 || rowSpan < 2;
     const tile = document.createElement("div");
-    tile.className = `heatmap-tile ${pnlClass}`;
+    tile.className = `heatmap-tile ${pnlClass}${hideDetails ? " heatmap-tile-compact" : ""}`;
     tile.style.cssText = [
       `grid-column:span ${index === 0 ? Math.max(3, columnSpan) : columnSpan}`,
-      `grid-row:span ${index === 0 ? Math.max(2, rowSpan) : rowSpan}`
+      `grid-row:span ${index === 0 ? Math.max(2, rowSpan) : rowSpan}`,
+      `background: color-mix(in srgb, ${color} ${Math.round(intensity * 100)}%, var(--panel-raised))`
     ].join(";");
-    tile.title = `${position.ticker} - ${position.name} - ${money(position.market_value)}`;
+    tile.title = `${position.ticker} - ${position.name} - ${money(position.market_value)} - P&L ${money(pnl)}`;
     tile.innerHTML = `
       <strong>${escapeHtml(position.ticker)}</strong>
       <span>${percent.format(position.current_percent * 100)}% / ${money(position.market_value)}</span>
@@ -254,8 +272,11 @@ function renderHistory() {
   const pnlPoints = historyData.daily_pnl.filter((point) => points.some((item) => item.date === point.date));
 
   setText("historySummary", `${points.length} ${activeRange} points from local history`);
-  renderLineAreaChart("portfolioValueChart", points.map((point) => point.net_liquidation));
-  renderMiniChart("dailyPnlChart", pnlPoints.map((point) => point.value), true);
+  renderLineAreaChart("portfolioValueChart", points.map((point) => point.net_liquidation), {
+    labelMin: money(Math.min(...points.map((point) => point.net_liquidation))),
+    labelMax: money(Math.max(...points.map((point) => point.net_liquidation)))
+  });
+  renderPnlChart("dailyPnlChart", pnlPoints.map((point) => point.value));
   renderDrawdown(points);
   setText("portfolioValueRange", rangeText(points.map((point) => point.net_liquidation)));
   setText("dailyPnlRange", rangeText(pnlPoints.map((point) => point.value)));
@@ -293,7 +314,7 @@ function filterHistoryPoints(points) {
   return points.filter((point) => new Date(`${point.date}T00:00:00`) >= start);
 }
 
-function renderLineAreaChart(id, values) {
+function renderLineAreaChart(id, values, labels = {}) {
   const chart = document.getElementById(id);
   chart.innerHTML = "";
   if (values.length === 0) return;
@@ -302,27 +323,65 @@ function renderLineAreaChart(id, values) {
   const min = Math.min(...visibleValues);
   const max = Math.max(...visibleValues);
   const span = max - min || 1;
-  const width = 420;
-  const height = 120;
-  const padding = 10;
+  const width = 520;
+  const height = 180;
+  const padding = { top: 16, right: 14, bottom: 24, left: 72 };
   const points = visibleValues.map((value, index) => {
-    const x = padding + (index / Math.max(visibleValues.length - 1, 1)) * (width - padding * 2);
-    const y = height - padding - ((value - min) / span) * (height - padding * 2);
+    const x = padding.left + (index / Math.max(visibleValues.length - 1, 1)) * (width - padding.left - padding.right);
+    const y = height - padding.bottom - ((value - min) / span) * (height - padding.top - padding.bottom);
     return { x, y };
   });
   const line = points.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ");
   const area = [
-    `${padding},${height - padding}`,
+    `${padding.left},${height - padding.bottom}`,
     ...points.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`),
-    `${width - padding},${height - padding}`
+    `${width - padding.right},${height - padding.bottom}`
   ].join(" ");
 
   chart.style.display = "block";
   chart.style.padding = "0";
   chart.innerHTML = `
     <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Portfolio value trend" style="display:block;width:100%;height:100%;">
+      <line x1="${padding.left}" y1="${padding.top}" x2="${padding.left}" y2="${height - padding.bottom}" stroke="var(--line)" stroke-width="1"></line>
+      <line x1="${padding.left}" y1="${height - padding.bottom}" x2="${width - padding.right}" y2="${height - padding.bottom}" stroke="var(--line)" stroke-width="1"></line>
+      <text x="${padding.left - 8}" y="${padding.top + 4}" text-anchor="end" fill="var(--muted)" font-size="11">${escapeHtml(labels.labelMax || money(max))}</text>
+      <text x="${padding.left - 8}" y="${height - padding.bottom + 4}" text-anchor="end" fill="var(--muted)" font-size="11">${escapeHtml(labels.labelMin || money(min))}</text>
       <polygon points="${area}" fill="var(--accent)" opacity="0.22"></polygon>
       <polyline points="${line}" fill="none" stroke="var(--accent-strong)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+    </svg>
+  `;
+}
+
+function renderPnlChart(id, values) {
+  const chart = document.getElementById(id);
+  chart.innerHTML = "";
+  if (values.length === 0) return;
+
+  const visibleValues = values.slice(-85);
+  const width = 380;
+  const height = 180;
+  const padding = { top: 16, right: 12, bottom: 24, left: 70 };
+  const maxAbs = Math.max(...visibleValues.map((value) => Math.abs(value)), 1);
+  const zeroY = padding.top + (height - padding.top - padding.bottom) / 2;
+  const innerWidth = width - padding.left - padding.right;
+  const barWidth = Math.max(1.5, innerWidth / visibleValues.length * 0.68);
+  const bars = visibleValues.map((value, index) => {
+    const x = padding.left + (index / visibleValues.length) * innerWidth;
+    const heightValue = Math.abs(value) / maxAbs * ((height - padding.top - padding.bottom) / 2);
+    const y = value >= 0 ? zeroY - heightValue : zeroY;
+    const color = value >= 0 ? "var(--success)" : "var(--danger)";
+    return `<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${Math.max(1, heightValue).toFixed(2)}" rx="1.5" fill="${color}"></rect>`;
+  }).join("");
+
+  chart.style.display = "block";
+  chart.style.padding = "0";
+  chart.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Daily P&L bars" style="display:block;width:100%;height:100%;">
+      <line x1="${padding.left}" y1="${padding.top}" x2="${padding.left}" y2="${height - padding.bottom}" stroke="var(--line)" stroke-width="1"></line>
+      <line x1="${padding.left}" y1="${zeroY}" x2="${width - padding.right}" y2="${zeroY}" stroke="var(--line)" stroke-width="1.4"></line>
+      <text x="${padding.left - 8}" y="${padding.top + 4}" text-anchor="end" fill="var(--muted)" font-size="11">${escapeHtml(money(maxAbs))}</text>
+      <text x="${padding.left - 8}" y="${height - padding.bottom + 4}" text-anchor="end" fill="var(--muted)" font-size="11">${escapeHtml(money(-maxAbs))}</text>
+      ${bars}
     </svg>
   `;
 }
@@ -332,11 +391,50 @@ function renderDrawdown(points) {
   if (!drawdownChart) return;
 
   const drawdowns = calculateDrawdowns(points.map((point) => point.net_liquidation));
-  renderMiniChart("drawdownChart", drawdowns, true);
+  renderDrawdownChart("drawdownChart", drawdowns);
 
   const maxDrawdown = Math.min(...drawdowns, 0);
   setText("drawdownRange", `${percent.format(maxDrawdown * 100)}% max drawdown`);
   setText("maxDrawdown", `${percent.format(maxDrawdown * 100)}%`);
+}
+
+function renderDrawdownChart(id, values) {
+  const chart = document.getElementById(id);
+  chart.innerHTML = "";
+  if (values.length === 0) return;
+
+  const visibleValues = values.slice(-85);
+  const min = Math.min(...visibleValues, 0);
+  const floor = Math.min(-0.01, Math.floor(min * 100 / 5) * 5 / 100);
+  const width = 760;
+  const height = 130;
+  const padding = { top: 14, right: 12, bottom: 24, left: 70 };
+  const innerWidth = width - padding.left - padding.right;
+  const innerHeight = height - padding.top - padding.bottom;
+  const points = visibleValues.map((value, index) => {
+    const x = padding.left + (index / Math.max(visibleValues.length - 1, 1)) * innerWidth;
+    const y = padding.top + (value / floor) * innerHeight;
+    return { x, y };
+  });
+  const line = points.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ");
+  const area = [
+    `${padding.left},${padding.top}`,
+    ...points.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`),
+    `${width - padding.right},${padding.top}`
+  ].join(" ");
+
+  chart.style.display = "block";
+  chart.style.padding = "0";
+  chart.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Drawdown chart" style="display:block;width:100%;height:100%;">
+      <line x1="${padding.left}" y1="${padding.top}" x2="${padding.left}" y2="${height - padding.bottom}" stroke="var(--line)" stroke-width="1"></line>
+      <line x1="${padding.left}" y1="${padding.top}" x2="${width - padding.right}" y2="${padding.top}" stroke="var(--line)" stroke-width="1.4"></line>
+      <text x="${padding.left - 8}" y="${padding.top + 4}" text-anchor="end" fill="var(--muted)" font-size="11">0%</text>
+      <text x="${padding.left - 8}" y="${height - padding.bottom + 4}" text-anchor="end" fill="var(--muted)" font-size="11">${percent.format(floor * 100)}%</text>
+      <polygon points="${area}" fill="var(--danger)" opacity="0.24"></polygon>
+      <polyline points="${line}" fill="none" stroke="var(--danger)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></polyline>
+    </svg>
+  `;
 }
 
 function calculateDrawdowns(values) {
@@ -463,6 +561,7 @@ function render() {
   document.body.dataset.theme = theme;
   filteredPositions = getFilteredPositions();
   updateCurrencyButtons();
+  updateThemeButtons();
   renderSummary();
   renderWarnings();
   renderAllocation();
@@ -477,6 +576,7 @@ function render() {
 function updateCurrencyButtons() {
   const usdButton = document.getElementById("usdButton");
   const myrButton = document.getElementById("myrButton");
+  const currencyPill = document.querySelector(".currency-pill");
   if (!usdButton || !myrButton) return;
 
   const hasMyrRate = Boolean(snapshot.fx?.USD_MYR);
@@ -485,6 +585,9 @@ function updateCurrencyButtons() {
   }
   usdButton.classList.toggle("active", displayCurrency === "USD");
   myrButton.classList.toggle("active", displayCurrency === "MYR");
+  if (currencyPill) {
+    currencyPill.dataset.active = displayCurrency === "MYR" ? "right" : "left";
+  }
   usdButton.setAttribute("aria-pressed", String(displayCurrency === "USD"));
   myrButton.setAttribute("aria-pressed", String(displayCurrency === "MYR"));
   myrButton.disabled = !hasMyrRate;
@@ -497,13 +600,18 @@ async function init() {
     loadJsonWithFallback("data/health.json", "data/health.example.json")
   ]);
 
-  const themeToggle = document.getElementById("themeToggle");
-  themeToggle.checked = theme === "dark";
   document.body.dataset.theme = theme;
-  themeToggle.addEventListener("change", (event) => {
-    theme = event.target.checked ? "dark" : "light";
+  document.getElementById("lightButton").addEventListener("click", () => {
+    theme = "light";
     localStorage.setItem("investment-monitor-theme", theme);
     document.body.dataset.theme = theme;
+    updateThemeButtons();
+  });
+  document.getElementById("darkButton").addEventListener("click", () => {
+    theme = "dark";
+    localStorage.setItem("investment-monitor-theme", theme);
+    document.body.dataset.theme = theme;
+    updateThemeButtons();
   });
 
   const usdButton = document.getElementById("usdButton");
