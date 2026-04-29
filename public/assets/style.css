@@ -1,18 +1,19 @@
 :root {
   color-scheme: dark;
-  --bg: #101418;
-  --panel: #171d23;
-  --panel-raised: #1d252d;
+  --bg: #0f1514;
+  --panel: #151c1b;
+  --panel-raised: #1b2422;
   --text: #eef3f7;
-  --muted: #9aa8b5;
-  --line: #2d3843;
-  --accent: #3aa6b2;
-  --accent-strong: #72d1dc;
-  --accent-soft: #1e3b42;
+  --muted: #a6b6b0;
+  --line: #2b3835;
+  --accent: #1b8a63;
+  --accent-strong: #63d6c5;
+  --accent-soft: #1d3e3d;
   --warn: #3c3217;
   --warn-line: #c6982d;
   --danger: #ff7a70;
   --success: #59d69b;
+  --shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
 }
 
 body[data-theme="light"] {
@@ -30,6 +31,7 @@ body[data-theme="light"] {
   --warn-line: #e0b744;
   --danger: #b42318;
   --success: #087443;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 * {
@@ -40,13 +42,14 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-size: 14px;
 }
 
 .shell {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 32px 0;
+  padding: 24px 0;
 }
 
 .topbar {
@@ -73,7 +76,8 @@ h2 {
 }
 
 h1 {
-  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-size: 2rem;
+  font-weight: 700;
 }
 
 h2 {
@@ -136,10 +140,11 @@ h2 {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
+  box-shadow: var(--shadow);
 }
 
 .metric {
-  padding: 16px;
+  padding: 20px;
 }
 
 .metric span,
@@ -151,12 +156,12 @@ h2 {
 .metric strong {
   display: block;
   margin-top: 8px;
-  font-size: 1.35rem;
+  font-size: 1.45rem;
 }
 
 .panel {
   margin-top: 16px;
-  padding: 18px;
+  padding: 20px;
 }
 
 .panel-heading {
@@ -241,6 +246,7 @@ h2 {
   height: 100%;
   border-radius: inherit;
   background: var(--accent-strong);
+  transition: width 160ms ease;
 }
 
 .bar .target {
@@ -261,6 +267,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   min-width: 820px;
+  table-layout: fixed;
 }
 
 th,
@@ -268,13 +275,20 @@ td {
   border-bottom: 1px solid var(--line);
   padding: 11px 10px;
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 th {
   color: var(--muted);
   font-size: 0.78rem;
   text-transform: uppercase;
+}
+
+.truncate {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .positive {

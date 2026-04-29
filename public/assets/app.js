@@ -51,27 +51,37 @@ function renderSummary() {
   setText("realizedPnl", money(snapshot.account.realized_pnl));
   setText("marginValue", money(snapshot.account.margin_value));
   setText("totalMarketValue", money(snapshot.account.total_market_value));
-  setText("lastRefresh", new Date(snapshot.generated_at).toLocaleString());
+  setText("lastRefresh", formatLocalDateTime(snapshot.generated_at));
   setText("dataSource", `${snapshot.source} / ${snapshot.mode}`);
 }
 
 function renderWarnings() {
   const warning = document.getElementById("staleWarning");
-  warning.hidden = snapshot.warnings.length === 0;
-  warning.textContent = snapshot.warnings.map((item) => item.message).join(" ");
+  const visibleWarnings = snapshot.warnings.filter((item) => item.code !== "FLEX_STATEMENT_DATA");
+  warning.hidden = visibleWarnings.length === 0;
+  warning.textContent = visibleWarnings.map((item) => item.message).join(" ");
 }
 
 function renderAllocation() {
   const chart = document.getElementById("allocationChart");
   chart.innerHTML = "";
+  const maxAllocation = Math.max(
+    ...snapshot.positions.flatMap((position) => [
+      position.current_percent,
+      position.target_percent
+    ]),
+    0.01
+  );
   snapshot.positions.forEach((position) => {
+    const actualWidth = (position.current_percent / maxAllocation) * 100;
+    const targetLeft = Math.min((position.target_percent / maxAllocation) * 100, 100);
     const row = document.createElement("div");
     row.className = "allocation-row";
     row.innerHTML = `
       <span>${position.ticker}</span>
       <div class="bar" aria-hidden="true">
-        <i class="actual" style="width: ${position.current_percent * 100}%"></i>
-        <i class="target" style="left: ${position.target_percent * 100}%"></i>
+        <i class="actual" style="width: ${actualWidth}%"></i>
+        <i class="target" style="left: ${targetLeft}%"></i>
       </div>
       <strong>${percent.format(position.current_percent * 100)}%</strong>
     `;
@@ -86,7 +96,7 @@ function renderPositions() {
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${position.ticker}</td>
-      <td>${position.name}</td>
+      <td class="truncate" title="${escapeHtml(position.name)}">${position.name}</td>
       <td>${percent.format(position.units)}</td>
       <td>${money(position.unit_price)}</td>
       <td>${money(position.market_value)}</td>
@@ -173,7 +183,26 @@ function rangeText(values) {
 function renderHealth() {
   setText("healthStatus", health.status);
   setText("healthMessage", health.message);
-  setText("lastSuccessfulRefresh", new Date(health.last_successful_refresh).toLocaleString());
+  setText("lastSuccessfulRefresh", formatLocalDateTime(health.last_successful_refresh));
+}
+
+function formatLocalDateTime(value) {
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short"
+  }).format(new Date(value));
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 
 function render() {

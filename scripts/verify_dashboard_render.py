@@ -10,7 +10,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Verify rendered localhost dashboard DOM.")
     parser.add_argument("--url", default="http://127.0.0.1:8765/")
     parser.add_argument("--expect-source", default="flex / statement")
-    parser.add_argument("--reject", action="append", default=["MOCK", "$100,000.00"])
+    parser.add_argument(
+        "--reject",
+        action="append",
+        default=[
+            "MOCK",
+            "$100,000.00",
+            "Latest snapshot is based on Flex statement data",
+            "Example holdings",
+        ],
+    )
     args = parser.parse_args()
 
     browser = find_browser()
@@ -35,6 +44,8 @@ def main() -> None:
     dom = completed.stdout
     if args.expect_source not in dom:
         raise SystemExit(f"Rendered DOM did not contain expected source: {args.expect_source}")
+    if "GMT" not in dom and "UTC" not in dom:
+        raise SystemExit("Rendered DOM did not include an explicit timezone label.")
     rejected = [text for text in args.reject if text in dom]
     if rejected:
         raise SystemExit(f"Rendered DOM contained rejected text: {rejected}")
