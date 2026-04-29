@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
+from ibkr_monitor.dashboard.build import write_mock_poll_once
 from ibkr_monitor.dashboard.server import serve_dashboard
 
 
@@ -11,6 +13,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     poll = subparsers.add_parser("poll", help="Poll one snapshot. Mock only in v0.")
     poll.add_argument("--source", choices=["mock", "flex", "gateway"], default="mock")
+    poll.add_argument("--data-dir", type=Path, default=Path("public/data"))
 
     loop = subparsers.add_parser("poll-loop", help="Poll repeatedly. Not implemented in v0.")
     loop.add_argument("--source", choices=["mock", "gateway"], default="mock")
@@ -33,6 +36,9 @@ def main() -> None:
         return
     if args.command == "poll" and args.source != "mock":
         raise SystemExit("Live IBKR polling is not implemented in v0.")
+    if args.command == "poll":
+        print(write_mock_poll_once(args.data_dir))
+        return
     if args.command == "dashboard" and args.dashboard_command == "serve":
         serve_dashboard(host=args.host, port=args.port)
         return

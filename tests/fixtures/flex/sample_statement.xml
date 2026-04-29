@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlexQueryResponse>
+  <FlexStatements count="1">
+    <FlexStatement accountId="U0000001" fromDate="20260401" toDate="20260429">
+      <AccountValues>
+        <AccountValue accountId="U0000001" reportDate="20260429" key="NetLiquidation" currency="USD" value="125000.50" />
+        <AccountValue accountId="U0000001" reportDate="20260429" key="TotalCashValue" currency="USD" value="5000" />
+      </AccountValues>
+      <CashTransactions>
+        <CashTransaction accountId="U0000001" dateTime="20260415" type="Dividends" symbol="AAPL" description="AAPL CASH DIVIDEND" currency="USD" amount="24.12" />
+        <CashTransaction accountId="U0000001" dateTime="20260416" type="Withholding Tax" symbol="AAPL" description="AAPL DIVIDEND TAX" currency="USD" amount="-7.24" />
+        <CashTransaction accountId="U0000001" dateTime="20260417" type="Broker Fee" description="Monthly activity fee" currency="USD" amount="-1.50" />
+      </CashTransactions>
+      <Trades>
+        <Trade accountId="U0000001" tradeDate="20260420" assetCategory="STK" symbol="MSFT" description="MICROSOFT CORP" currency="USD" quantity="10" tradePrice="405.25" proceeds="-4052.50" ibCommission="-1.00" realizedPNL="0" />
+        <Trade accountId="U0000001" tradeDate="20260421" assetCategory="STK" symbol="TSLA" description="TESLA INC" currency="USD" quantity="-5" tradePrice="180.00" proceeds="900.00" ibCommission="-1.00" realizedPNL="125.75" />
+      </Trades>
+    </FlexStatement>
+  </FlexStatements>
+</FlexQueryResponse>

@@ -17,6 +17,14 @@ async function loadJson(path) {
   return response.json();
 }
 
+async function loadJsonWithFallback(primaryPath, fallbackPath) {
+  try {
+    return await loadJson(primaryPath);
+  } catch {
+    return loadJson(fallbackPath);
+  }
+}
+
 function money(value) {
   const rate = snapshot?.fx?.USD_MYR;
   const converted = displayCurrency === "MYR" && rate ? value * rate : value;
@@ -145,9 +153,9 @@ function render() {
 
 async function init() {
   [snapshot, historyData, health] = await Promise.all([
-    loadJson("data/latest.example.json"),
+    loadJsonWithFallback("data/latest.json", "data/latest.example.json"),
     loadJson("data/history.example.json"),
-    loadJson("data/health.example.json")
+    loadJsonWithFallback("data/health.json", "data/health.example.json")
   ]);
 
   const themeToggle = document.getElementById("themeToggle");
@@ -167,11 +175,34 @@ async function init() {
   });
 
   document.getElementById("refreshButton").addEventListener("click", () => {
-    document.getElementById("refreshStatus").textContent =
-      "Refresh endpoint is not implemented in v0. This button does not call IBKR.";
+    refreshNow();
   });
 
   render();
+}
+
+async function refreshNow() {
+  const status = document.getElementById("refreshStatus");
+  const button = document.getElementById("refreshButton");
+  button.disabled = true;
+  status.textContent = "Refreshing mock snapshot...";
+  try {
+    const response = await fetch("/api/refresh-now", { method: "POST" });
+    if (!response.ok) {
+      throw new Error(`Refresh failed: ${response.status}`);
+    }
+    await response.json();
+    [snapshot, health] = await Promise.all([
+      loadJson("data/latest.json"),
+      loadJson("data/health.json")
+    ]);
+    render();
+    status.textContent = "Mock refresh complete.";
+  } catch (error) {
+    status.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
 }
 
 init().catch((error) => {

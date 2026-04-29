@@ -1,6 +1,145 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+from xml.etree import ElementTree
+
+NormalizedRow = dict[str, Any]
+
+
+@dataclass(frozen=True)
+class FlexStatement:
+    dividends: list[NormalizedRow]
+    fees: list[NormalizedRow]
+    realized_pnl: list[NormalizedRow]
+    trades: list[NormalizedRow]
+    account_values: list[NormalizedRow]
+
 
 def flex_adapter_available() -> bool:
-    """Return false until the Flex Web Service adapter is implemented."""
-    return False
+    """Return true for local mocked Flex XML parsing support."""
+    return True
+
+
+def parse_flex_xml(xml: str) -> FlexStatement:
+    """Parse a mocked IBKR Flex XML statement into normalized local rows."""
+    root = ElementTree.fromstring(xml)
+
+    dividends: list[NormalizedRow] = []
+    fees: list[NormalizedRow] = []
+    realized_pnl: list[NormalizedRow] = []
+    trades: list[NormalizedRow] = []
+    account_values: list[NormalizedRow] = []
+
+    for element in root.iter():
+        tag = _local_name(element.tag)
+        attrs = dict(element.attrib)
+
+        if tag == "CashTransaction":
+            cash_row = _cash_transaction_row(attrs)
+            if _is_fee(attrs):
+                fees.append(cash_row)
+            elif _is_dividend(attrs):
+                dividends.append(cash_row)
+        elif tag == "Trade":
+            trade_row = _trade_row(attrs)
+            trades.append(trade_row)
+            realized = _number(_first(attrs, "realizedPNL", "fifoPnlRealized", "mtmPnl"))
+            if realized != 0:
+                realized_pnl.append(
+                    {
+                        "date": _first(attrs, "dateTime", "tradeDate", "reportDate"),
+                        "account_id": _first(attrs, "accountId", "accountID", "account"),
+                        "symbol": _first(attrs, "symbol", "underlyingSymbol"),
+                        "description": _first(attrs, "description"),
+                        "currency": _first(attrs, "currency"),
+                        "realized_pnl": realized,
+                    }
+                )
+        elif tag == "AccountValue":
+            account_values.append(_account_value_row(attrs))
+
+    return FlexStatement(
+        dividends=dividends,
+        fees=fees,
+        realized_pnl=realized_pnl,
+        trades=trades,
+        account_values=account_values,
+    )
+
+
+def parse_flex_file(path: str | Path) -> FlexStatement:
+    """Parse a local mocked Flex XML fixture or downloaded report."""
+    return parse_flex_xml(Path(path).read_text(encoding="utf-8"))
+
+
+def _cash_transaction_row(attrs: dict[str, str]) -> NormalizedRow:
+    return {
+        "date": _first(attrs, "dateTime", "date", "reportDate"),
+        "account_id": _first(attrs, "accountId", "accountID", "account"),
+        "symbol": _first(attrs, "symbol", "underlyingSymbol"),
+        "description": _first(attrs, "description"),
+        "type": _first(attrs, "type", "code", "activityCode"),
+        "currency": _first(attrs, "currency"),
+        "amount": _number(_first(attrs, "amount", "proceeds")),
+    }
+
+
+def _trade_row(attrs: dict[str, str]) -> NormalizedRow:
+    return {
+        "date": _first(attrs, "dateTime", "tradeDate", "reportDate"),
+        "account_id": _first(attrs, "accountId", "accountID", "account"),
+        "symbol": _first(attrs, "symbol", "underlyingSymbol"),
+        "description": _first(attrs, "description"),
+        "asset_class": _first(attrs, "assetCategory", "assetClass"),
+        "currency": _first(attrs, "currency"),
+        "quantity": _number(_first(attrs, "quantity", "qty")),
+        "price": _number(_first(attrs, "tradePrice", "price")),
+        "proceeds": _number(_first(attrs, "proceeds")),
+        "commission": _number(_first(attrs, "ibCommission", "commission")),
+        "realized_pnl": _number(_first(attrs, "realizedPNL", "fifoPnlRealized", "mtmPnl")),
+    }
+
+
+def _account_value_row(attrs: dict[str, str]) -> NormalizedRow:
+    return {
+        "date": _first(attrs, "reportDate", "date"),
+        "account_id": _first(attrs, "accountId", "accountID", "account"),
+        "name": _first(attrs, "key", "name"),
+        "currency": _first(attrs, "currency"),
+        "value": _number(_first(attrs, "value", "amount")),
+    }
+
+
+def _is_dividend(attrs: dict[str, str]) -> bool:
+    text = " ".join(
+        _first(attrs, key) for key in ("type", "code", "activityCode", "description")
+    ).lower()
+    return "dividend" in text or text.startswith("div ")
+
+
+def _is_fee(attrs: dict[str, str]) -> bool:
+    text = " ".join(
+        _first(attrs, key) for key in ("type", "code", "activityCode", "description")
+    ).lower()
+    fee_terms = ("fee", "commission", "withholding", "tax")
+    return any(term in text for term in fee_terms)
+
+
+def _first(attrs: dict[str, str], *names: str) -> str:
+    for name in names:
+        value = attrs.get(name)
+        if value is not None and value != "":
+            return value
+    return ""
+
+
+def _number(value: str) -> float:
+    if value == "":
+        return 0.0
+    return float(value.replace(",", ""))
+
+
+def _local_name(tag: str) -> str:
+    return tag.rsplit("}", 1)[-1]
