@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 
+from ibkr_monitor.dashboard.server import serve_dashboard
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="ibkr-monitor")
@@ -31,6 +33,9 @@ def main() -> None:
         return
     if args.command == "poll" and args.source != "mock":
         raise SystemExit("Live IBKR polling is not implemented in v0.")
+    if args.command == "dashboard" and args.dashboard_command == "serve":
+        serve_dashboard(host=args.host, port=args.port)
+        return
     print(f"{args.command} is scaffolded; implementation begins in a later phase.")
 
 

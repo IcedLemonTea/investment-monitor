@@ -82,7 +82,7 @@ h2 {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -136,17 +136,27 @@ h2 {
 }
 
 .bar {
+  position: relative;
   height: 12px;
-  overflow: hidden;
   border-radius: 999px;
   background: var(--accent-soft);
 }
 
-.bar i {
+.bar .actual {
   display: block;
   height: 100%;
   border-radius: inherit;
   background: var(--accent);
+}
+
+.bar .target {
+  position: absolute;
+  top: -4px;
+  display: block;
+  width: 2px;
+  height: 20px;
+  border-radius: 0;
+  background: var(--text);
 }
 
 .table-wrap {

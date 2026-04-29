@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from ibkr_monitor.dashboard.server import serve_dashboard
+
 
 def main() -> None:
-    raise SystemExit("serve_dashboard.py is a placeholder; implementation is not available yet.")
+    serve_dashboard()
 
 
 if __name__ == "__main__":
