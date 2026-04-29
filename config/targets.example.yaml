@@ -1,0 +1,19 @@
+targets:
+  - ticker: QLD
+    display_ticker: NYSEARCA:QLD
+    target_percent: 50
+  - ticker: TQQQ
+    display_ticker: NASDAQ:TQQQ
+    target_percent: 10
+  - ticker: AVUV
+    display_ticker: NYSEARCA:AVUV
+    target_percent: 20
+  - ticker: AVDV
+    display_ticker: NYSEARCA:AVDV
+    target_percent: 10
+  - ticker: QMOM
+    display_ticker: NASDAQ:QMOM
+    target_percent: 10
+  - ticker: CASH_OTHERS
+    display_ticker: Cash/Others
+    target_percent: 0

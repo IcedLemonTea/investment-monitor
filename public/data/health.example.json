@@ -1,0 +1,12 @@
+{
+  "status": "example",
+  "lastRun": "2026-04-29T14:00:00Z",
+  "dataFreshness": "stale",
+  "source": "static public/data examples",
+  "checks": [
+    { "name": "brokerage", "status": "not_configured" },
+    { "name": "market_data", "status": "not_configured" },
+    { "name": "dashboard_assets", "status": "ok" }
+  ],
+  "notes": "No live brokerage, market data, CDN, or external network calls are used."
+}

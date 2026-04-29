@@ -1,0 +1,21 @@
+instruments:
+  QLD:
+    name: ProShares Ultra QQQ
+    asset_class: ETF
+    currency: USD
+  TQQQ:
+    name: ProShares UltraPro QQQ
+    asset_class: ETF
+    currency: USD
+  AVUV:
+    name: Avantis U.S. Small Cap Value ETF
+    asset_class: ETF
+    currency: USD
+  AVDV:
+    name: Avantis International Small Cap Value ETF
+    asset_class: ETF
+    currency: USD
+  QMOM:
+    name: Alpha Architect U.S. Quantitative Momentum ETF
+    asset_class: ETF
+    currency: USD

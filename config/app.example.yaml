@@ -1,0 +1,12 @@
+dashboard:
+  host: 127.0.0.1
+  port: 8765
+base_currency: USD
+display_currency:
+  enable_myr: true
+  usd_myr_manual_rate:
+storage:
+  runtime_dir: runtime
+ibkr:
+  gateway_base_url: https://localhost:5000/v1/api
+  verify_ssl: false

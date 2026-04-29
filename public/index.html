@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Investment Monitor</title>
+    <link rel="stylesheet" href="assets/style.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Example-only local dashboard</p>
+          <h1>Investment Monitor</h1>
+          <p class="meta">
+            <span id="lastRefresh">--</span>
+            <span id="dataSource">mock</span>
+          </p>
+        </div>
+        <div class="actions">
+          <label class="toggle">
+            <input id="currencyToggle" type="checkbox">
+            <span>MYR</span>
+          </label>
+          <button id="refreshButton" class="refresh-button" type="button">Refresh</button>
+        </div>
+      </header>
+
+      <section id="staleWarning" class="warning" hidden></section>
+      <p id="refreshStatus" class="status" aria-live="polite"></p>
+
+      <section class="summary-grid" aria-label="Portfolio summary">
+        <article class="metric">
+          <span>Net liquidation</span>
+          <strong id="netLiquidation">$0.00</strong>
+        </article>
+        <article class="metric">
+          <span>Daily P&amp;L</span>
+          <strong id="dailyPnl">$0.00</strong>
+        </article>
+        <article class="metric">
+          <span>Unrealized P&amp;L</span>
+          <strong id="unrealizedPnl">$0.00</strong>
+        </article>
+        <article class="metric">
+          <span>Realized P&amp;L</span>
+          <strong id="realizedPnl">$0.00</strong>
+        </article>
+        <article class="metric">
+          <span>Margin / exposure</span>
+          <strong id="marginValue">$0.00</strong>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Target vs Actual Allocation</h2>
+          <span>Actual bars with target markers</span>
+        </div>
+        <div id="allocationChart" class="chart-placeholder" role="img" aria-label="Target vs actual allocation"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Drift</h2>
+          <span>Suggestions only, no execution</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Target %</th>
+                <th>Current %</th>
+                <th>Drift %</th>
+                <th>Rebalance value</th>
+              </tr>
+            </thead>
+            <tbody id="driftBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Positions</h2>
+          <span>Example holdings</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Name</th>
+                <th>Units</th>
+                <th>Unit price</th>
+                <th>Market value</th>
+                <th>Current %</th>
+                <th>Target %</th>
+                <th>Drift %</th>
+                <th>Unrealized P&amp;L</th>
+                <th>Daily P&amp;L</th>
+                <th>Currency</th>
+              </tr>
+            </thead>
+            <tbody id="positionsBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="vendor/chart.umd.js"></script>
+    <script src="assets/app.js"></script>
+  </body>
+</html>

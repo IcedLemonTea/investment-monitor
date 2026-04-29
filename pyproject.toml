@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ibkr-monitor"
+version = "0.1.0"
+description = "Local read-only IBKR investment monitor with a localhost dashboard."
+requires-python = ">=3.11"
+dependencies = [
+  "PyYAML>=6.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.5.0",
+  "mypy>=1.10",
+  "types-PyYAML>=6.0.12",
+]
+
+[project.scripts]
+ibkr-monitor = "ibkr_monitor.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src"]

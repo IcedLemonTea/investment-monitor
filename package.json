@@ -1,0 +1,9 @@
+{
+  "name": "investment-monitor-dashboard",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Local static dashboard assets for the IBKR investment monitor.",
+  "scripts": {
+    "test": "echo \"No frontend test runner configured yet\""
+  }
+}

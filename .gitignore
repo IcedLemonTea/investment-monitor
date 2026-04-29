@@ -1,0 +1,49 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Local config
+config/*.local.yaml
+config/local/
+*.secret.yaml
+
+# Runtime data
+runtime/*
+!runtime/.gitkeep
+
+# Generated dashboard data
+public/data/*.json
+!public/data/*.example.json
+
+# Databases and logs
+*.sqlite
+*.sqlite3
+*.db
+*.log
+
+# Keys/certs
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# Node
+node_modules/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

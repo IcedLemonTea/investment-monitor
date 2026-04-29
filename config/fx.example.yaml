@@ -1,0 +1,4 @@
+fx:
+  USD_MYR:
+    rate:
+    source: manual_config

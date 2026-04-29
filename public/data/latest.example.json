@@ -1,0 +1,25 @@
+{
+  "asOf": "2026-04-29T14:00:00Z",
+  "stale": true,
+  "summary": {
+    "totalValue": 125430.25,
+    "cash": 3250.0,
+    "dayChange": -842.18,
+    "dayChangePct": -0.67,
+    "ytdReturnPct": 8.42
+  },
+  "targetAllocation": [
+    { "symbol": "QLD", "targetPct": 30 },
+    { "symbol": "TQQQ", "targetPct": 15 },
+    { "symbol": "AVUV", "targetPct": 25 },
+    { "symbol": "AVDV", "targetPct": 15 },
+    { "symbol": "QMOM", "targetPct": 15 }
+  ],
+  "positions": [
+    { "symbol": "QLD", "name": "ProShares Ultra QQQ", "shares": 420, "price": 88.12, "value": 37010.4, "targetPct": 30, "currentPct": 29.51 },
+    { "symbol": "TQQQ", "name": "ProShares UltraPro QQQ", "shares": 280, "price": 64.55, "value": 18074.0, "targetPct": 15, "currentPct": 14.41 },
+    { "symbol": "AVUV", "name": "Avantis U.S. Small Cap Value ETF", "shares": 360, "price": 92.8, "value": 33408.0, "targetPct": 25, "currentPct": 26.63 },
+    { "symbol": "AVDV", "name": "Avantis International Small Cap Value ETF", "shares": 510, "price": 64.35, "value": 32818.5, "targetPct": 15, "currentPct": 26.16 },
+    { "symbol": "QMOM", "name": "Alpha Architect U.S. Quantitative Momentum ETF", "shares": 78, "price": 111.15, "value": 8669.7, "targetPct": 15, "currentPct": 6.91 }
+  ]
+}
