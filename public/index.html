@@ -11,15 +11,12 @@
       <aside class="sidebar" aria-label="Primary navigation">
         <div class="brand">
           <span class="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 32 32">
-              <path d="M16 3 5 8v8c0 6.7 4.6 10.6 11 13 6.4-2.4 11-6.3 11-13V8z"/>
-              <path d="M10 17.5h3.2l2.1-7 3.4 11 2.1-6h1.7" class="brand-line"/>
+            <svg viewBox="0 0 48 48">
+              <path d="M24 5 8 12v11c0 10.6 7.2 16.6 16 20 8.8-3.4 16-9.4 16-20V12z"/>
+              <path d="M15 26h5l3.2-11 5.2 17 3.3-9H36" class="brand-line"/>
             </svg>
           </span>
-          <div>
-            <strong>Investment</strong>
-            <span>Monitor</span>
-          </div>
+          <strong>Investment Monitor</strong>
         </div>
 
         <nav class="side-nav">
@@ -39,10 +36,6 @@
           <a href="#performance">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 17 5-5 4 3 7-8v5h-2V9.7l-4.7 5.4-4.1-3.1L5.4 18.4z"/></svg>
             Performance
-          </a>
-          <a href="#health">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.4 7.7 8 9 4.6-1.3 8-4 8-9V6zm-1 12-3-3 1.4-1.4L11 12.2l4.6-4.6L17 9z"/></svg>
-            Data Health
           </a>
         </nav>
 
@@ -74,14 +67,8 @@
               <button id="refreshButton" class="icon-button" type="button" aria-label="Refresh local snapshot">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.7 6.3A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.8-4.2L13 11h8V3z"/></svg>
               </button>
+              <span id="refreshStatus" class="sr-only" aria-live="polite">Ready</span>
             </p>
-          </div>
-          <div class="heading-tools">
-            <label class="search-box">
-              <span>Search</span>
-              <input id="tickerSearch" type="search" placeholder="Filter ticker or name">
-            </label>
-            <div class="status-pill" id="refreshStatus" aria-live="polite">Ready</div>
           </div>
         </section>
 
@@ -130,7 +117,6 @@
                   <span id="historySummary">Daily history</span>
                 </div>
               </div>
-              <strong class="chart-range" id="portfolioValueRange">--</strong>
               <div class="history-viz" aria-label="Portfolio value and daily P&L history">
                 <div class="chart-block wide">
                   <div class="mini-chart-heading chart-heading-with-controls">
@@ -145,11 +131,6 @@
                         <button data-range="1Y" type="button">1Y</button>
                         <button data-range="5Y" type="button">5Y</button>
                       </div>
-                      <div class="range-toggle benchmark-toggle" role="group" aria-label="Benchmark overlay">
-                        <button class="active" data-benchmark="portfolio" type="button">Portfolio</button>
-                        <button data-benchmark="QQQ" type="button">QQQ</button>
-                        <button data-benchmark="SPY" type="button">SPY</button>
-                      </div>
                     </div>
                   </div>
                   <div id="portfolioValueChart" class="mini-chart line-chart"></div>
@@ -157,7 +138,6 @@
                 <div class="chart-block">
                   <div class="mini-chart-heading">
                     <span>Daily P&amp;L</span>
-                    <strong id="dailyPnlRange">--</strong>
                   </div>
                   <div id="dailyPnlChart" class="mini-chart pnl-chart"></div>
                 </div>
@@ -221,19 +201,10 @@
               <div id="riskMetricsList" class="risk-grid"></div>
             </section>
 
-            <section class="panel refresh-card" id="health">
-              <div class="panel-heading">
-                <div>
-                  <h2>Data Health</h2>
-                  <span id="healthStatus">example</span>
-                </div>
-              </div>
-              <dl class="health-list">
-                <dt>Last refresh</dt>
-                <dd id="lastSuccessfulRefresh">--</dd>
-                <dt>Status</dt>
-                <dd id="healthMessage">--</dd>
-              </dl>
+            <section id="health" class="sr-only" aria-live="polite">
+              <span id="healthStatus">example</span>
+              <span id="lastSuccessfulRefresh">--</span>
+              <span id="healthMessage">--</span>
             </section>
           </div>
         </section>

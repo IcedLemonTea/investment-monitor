@@ -51,6 +51,8 @@ Build a local-only, read-only IBKR investment monitor that generates a localhost
 - Time-series and risk charts must include visible axes or axis labels, equalized chart heights where charts sit side by side, and correct y-axis domains. Drawdown charts must anchor 0% at the top and scale downward to slightly beyond the maximum drawdown.
 - Heatmap colors must encode P&L direction and magnitude on a red-to-green scale. Hide text in heatmap cells that are too small to render legibly and rely on tooltips for details.
 - After layout changes, inspect a screenshot for structural alignment, chart overflow, wasted whitespace, and illegible truncated labels before committing.
+- Do not add visible controls that do not materially work. Remove useless search/status widgets and inactive benchmark buttons instead of leaving decorative controls on the dashboard.
+- Right-column cards must share a strict column width and spacing rhythm. Avoid orphaned low-value status cards that create vertical misalignment; put status details in the sidebar or screen-reader-only health output unless the card earns its space.
 
 ## Review priorities
 

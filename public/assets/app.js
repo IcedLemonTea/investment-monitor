@@ -219,22 +219,26 @@ function renderPortfolioHeatmap(id, rows) {
   const list = document.getElementById(id);
   list.innerHTML = "";
 
-  const maxValue = Math.max(...rows.map((position) => position.market_value), 1);
+  const totalValue = rows.reduce((total, position) => total + Math.max(position.market_value, 0), 0) || 1;
   const maxPnl = Math.max(...rows.map((position) => Math.abs(position.unrealized_pnl || position.daily_pnl || 0)), 1);
-  rows.forEach((position, index) => {
-    const share = Math.max(position.current_percent, position.market_value / maxValue / 10);
-    const columnSpan = Math.max(1, Math.min(6, Math.round(share * 12)));
-    const rowSpan = Math.max(1, Math.min(3, Math.round(share * 7)));
+  const rectangles = treemap(rows.map((position) => ({
+    ...position,
+    value: Math.max(position.market_value, 0) / totalValue
+  })), 0, 0, 100, 100);
+
+  rectangles.forEach(({ item: position, x, y, width, height }) => {
     const pnl = position.daily_pnl || position.unrealized_pnl || 0;
     const pnlClass = signedClass(pnl);
     const intensity = Math.min(0.72, 0.16 + Math.abs(pnl) / maxPnl * 0.56);
     const color = pnl < 0 ? "var(--danger)" : "var(--success)";
-    const hideDetails = columnSpan < 2 || rowSpan < 2;
+    const hideDetails = width < 18 || height < 16;
     const tile = document.createElement("div");
     tile.className = `heatmap-tile ${pnlClass}${hideDetails ? " heatmap-tile-compact" : ""}`;
     tile.style.cssText = [
-      `grid-column:span ${index === 0 ? Math.max(3, columnSpan) : columnSpan}`,
-      `grid-row:span ${index === 0 ? Math.max(2, rowSpan) : rowSpan}`,
+      `left:${x}%`,
+      `top:${y}%`,
+      `width:${width}%`,
+      `height:${height}%`,
       `background: color-mix(in srgb, ${color} ${Math.round(intensity * 100)}%, var(--panel-raised))`
     ].join(";");
     tile.title = `${position.ticker} - ${position.name} - ${money(position.market_value)} - P&L ${money(pnl)}`;
@@ -244,6 +248,33 @@ function renderPortfolioHeatmap(id, rows) {
     `;
     list.appendChild(tile);
   });
+}
+
+function treemap(items, x, y, width, height) {
+  if (items.length === 0) return [];
+  if (items.length === 1) {
+    return [{ item: items[0], x, y, width, height }];
+  }
+
+  const sorted = [...items].sort((a, b) => b.value - a.value);
+  const total = sorted.reduce((sum, item) => sum + item.value, 0);
+  const first = sorted[0];
+  const remaining = sorted.slice(1);
+  const firstShare = first.value / total;
+
+  if (width >= height) {
+    const firstWidth = width * firstShare;
+    return [
+      { item: first, x, y, width: firstWidth, height },
+      ...treemap(remaining, x + firstWidth, y, width - firstWidth, height)
+    ];
+  }
+
+  const firstHeight = height * firstShare;
+  return [
+    { item: first, x, y, width, height: firstHeight },
+    ...treemap(remaining, x, y + firstHeight, width, height - firstHeight)
+  ];
 }
 
 function renderStackList(id, rows, mapper) {
@@ -522,20 +553,14 @@ function targetAlignment(positions) {
 }
 
 function applyFilter() {
-  filteredPositions = getFilteredPositions();
+  filteredPositions = [...snapshot.positions];
   renderAllocation();
   renderPositions();
   renderDrift();
 }
 
 function getFilteredPositions() {
-  const query = document.getElementById("tickerSearch")?.value.trim().toLowerCase() || "";
-  return snapshot.positions.filter((position) => {
-    return (
-      position.ticker.toLowerCase().includes(query) ||
-      position.name.toLowerCase().includes(query)
-    );
-  });
+  return [...snapshot.positions];
 }
 
 function formatLocalDateTime(value) {
@@ -626,7 +651,6 @@ async function init() {
     render();
   });
 
-  document.getElementById("tickerSearch").addEventListener("input", applyFilter);
   document.querySelectorAll("[data-range]").forEach((button) => {
     button.addEventListener("click", () => {
       activeRange = button.dataset.range;
@@ -634,15 +658,6 @@ async function init() {
         item.classList.toggle("active", item === button);
       });
       renderHistory();
-    });
-  });
-  document.querySelectorAll("[data-benchmark]").forEach((button) => {
-    button.addEventListener("click", () => {
-      activeBenchmark = button.dataset.benchmark;
-      document.querySelectorAll("[data-benchmark]").forEach((item) => {
-        item.classList.toggle("active", item === button);
-      });
-      renderRiskMetrics();
     });
   });
   document.getElementById("refreshButton").addEventListener("click", () => {
