@@ -106,6 +106,29 @@ def test_parse_flex_file_normalizes_trades_and_account_values() -> None:
     ]
 
 
+def test_parse_flex_xml_normalizes_nav_summary_sections() -> None:
+    xml = """<?xml version="1.0"?>
+    <FlexStatementResponse>
+      <ChangeInNAV accountId="U0000001" toDate="20260429" currency="USD"
+        startingValue="100000" endingValue="101000" realized="100"
+        changeInUnrealized="250" dividends="50" withholdingTax="-15"
+        commissions="-2" brokerFees="-1" depositsWithdrawals="0" />
+      <EquitySummaryByReportDateInBase accountId="U0000001" reportDate="20260429"
+        currency="USD" total="101000" stock="98000" cash="3000" options="0"
+        funds="0" dividendAccruals="0" interestAccruals="0" />
+      <OpenPosition accountId="U0000001" reportDate="20260429" symbol="QLD"
+        currency="USD" positionValue="50000" />
+    </FlexStatementResponse>
+    """
+
+    statement = parse_flex_xml(xml)
+    values = {(row["section"], row["name"]): row["value"] for row in statement.account_values}
+
+    assert values[("ChangeInNAV", "ending_value")] == 101000.0
+    assert values[("EquitySummaryByReportDateInBase", "net_liquidation")] == 101000.0
+    assert values[("OpenPosition", "position_value:QLD")] == 50000.0
+
+
 def test_parse_flex_xml_handles_namespaced_documents() -> None:
     xml = """<?xml version="1.0"?>
     <FlexQueryResponse xmlns="urn:test">

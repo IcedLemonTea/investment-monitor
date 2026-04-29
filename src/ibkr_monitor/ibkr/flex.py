@@ -71,6 +71,12 @@ def parse_flex_xml(xml: str) -> FlexStatement:
                 )
         elif tag == "AccountValue":
             account_values.append(_account_value_row(attrs))
+        elif tag == "ChangeInNAV":
+            account_values.extend(_change_in_nav_rows(attrs))
+        elif tag == "EquitySummaryByReportDateInBase":
+            account_values.extend(_equity_summary_rows(attrs))
+        elif tag == "OpenPosition":
+            account_values.append(_open_position_value_row(attrs))
 
     return FlexStatement(
         dividends=dividends,
@@ -161,6 +167,71 @@ def _account_value_row(attrs: dict[str, str]) -> NormalizedRow:
         "name": _first(attrs, "key", "name"),
         "currency": _first(attrs, "currency"),
         "value": _number(_first(attrs, "value", "amount")),
+    }
+
+
+def _change_in_nav_rows(attrs: dict[str, str]) -> list[NormalizedRow]:
+    common = {
+        "date": _first(attrs, "toDate", "reportDate"),
+        "account_id": _first(attrs, "accountId", "accountID", "account"),
+        "currency": _first(attrs, "currency"),
+        "section": "ChangeInNAV",
+    }
+    return [
+        {**common, "name": "starting_value", "value": _number(_first(attrs, "startingValue"))},
+        {**common, "name": "ending_value", "value": _number(_first(attrs, "endingValue"))},
+        {**common, "name": "realized_pnl", "value": _number(_first(attrs, "realized"))},
+        {
+            **common,
+            "name": "unrealized_pnl_change",
+            "value": _number(_first(attrs, "changeInUnrealized")),
+        },
+        {**common, "name": "dividends", "value": _number(_first(attrs, "dividends"))},
+        {**common, "name": "withholding_tax", "value": _number(_first(attrs, "withholdingTax"))},
+        {**common, "name": "commissions", "value": _number(_first(attrs, "commissions"))},
+        {**common, "name": "fees", "value": _number(_first(attrs, "brokerFees", "otherFees"))},
+        {
+            **common,
+            "name": "deposits_withdrawals",
+            "value": _number(_first(attrs, "depositsWithdrawals")),
+        },
+    ]
+
+
+def _equity_summary_rows(attrs: dict[str, str]) -> list[NormalizedRow]:
+    common = {
+        "date": _first(attrs, "reportDate"),
+        "account_id": _first(attrs, "accountId", "accountID", "account"),
+        "currency": _first(attrs, "currency"),
+        "section": "EquitySummaryByReportDateInBase",
+    }
+    return [
+        {**common, "name": "net_liquidation", "value": _number(_first(attrs, "total"))},
+        {**common, "name": "stock", "value": _number(_first(attrs, "stock"))},
+        {**common, "name": "cash", "value": _number(_first(attrs, "cash"))},
+        {**common, "name": "options", "value": _number(_first(attrs, "options"))},
+        {**common, "name": "funds", "value": _number(_first(attrs, "funds"))},
+        {
+            **common,
+            "name": "dividend_accruals",
+            "value": _number(_first(attrs, "dividendAccruals")),
+        },
+        {
+            **common,
+            "name": "interest_accruals",
+            "value": _number(_first(attrs, "interestAccruals")),
+        },
+    ]
+
+
+def _open_position_value_row(attrs: dict[str, str]) -> NormalizedRow:
+    return {
+        "date": _first(attrs, "reportDate"),
+        "account_id": _first(attrs, "accountId", "accountID", "account"),
+        "name": f"position_value:{_first(attrs, 'symbol', 'underlyingSymbol')}",
+        "currency": _first(attrs, "currency"),
+        "section": "OpenPosition",
+        "value": _number(_first(attrs, "positionValue")),
     }
 
 
