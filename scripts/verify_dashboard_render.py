@@ -42,8 +42,17 @@ def main() -> None:
         )
 
     dom = completed.stdout
-    if args.expect_source not in dom:
-        raise SystemExit(f"Rendered DOM did not contain expected source: {args.expect_source}")
+    expected_text = [
+        args.expect_source,
+        "Portfolio Heatmap",
+        "Drawdown",
+        "Risk &amp; Exposure",
+        "USD",
+        "Dark",
+    ]
+    missing = [text for text in expected_text if text not in dom]
+    if missing:
+        raise SystemExit(f"Rendered DOM did not contain expected text: {missing}")
     if "GMT" not in dom and "UTC" not in dom:
         raise SystemExit("Rendered DOM did not include an explicit timezone label.")
     rejected = [text for text in args.reject if text in dom]

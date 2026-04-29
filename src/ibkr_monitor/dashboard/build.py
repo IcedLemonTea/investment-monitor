@@ -247,14 +247,7 @@ def build_latest_from_flex_statement(
             "total_market_value": total_market_value,
         },
         "positions": rendered_positions,
-        "warnings": [
-            {
-                "code": "FLEX_STATEMENT_DATA",
-                "message": (
-                    "Latest snapshot is based on Flex statement data, not live Gateway data."
-                ),
-            }
-        ],
+        "warnings": [],
     }
 
 

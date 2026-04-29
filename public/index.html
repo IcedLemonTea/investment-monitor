@@ -19,39 +19,51 @@
 
         <nav class="side-nav">
           <p>Menu</p>
-          <a class="active" href="#dashboard"><span>DB</span>Dashboard</a>
-          <a href="#allocation"><span>AL</span>Allocation</a>
-          <a href="#positions"><span>PO</span>Positions</a>
-          <a href="#performance"><span>PF</span>Performance</a>
-          <a href="#health"><span>HT</span>Data Health</a>
+          <a class="active" href="#dashboard">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7v6H4zM13 5h7v4h-7zM13 11h7v8h-7zM4 13h7v6H4z"/></svg>
+            Dashboard
+          </a>
+          <a href="#allocation">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9h3v10zm6 0V5h3v14zm6 0v-7h3v7z"/></svg>
+            Allocation
+          </a>
+          <a href="#positions">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v3H4zm0 5h16v3H4zm0 5h16v3H4z"/></svg>
+            Positions
+          </a>
+          <a href="#performance">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 17 5-5 4 3 7-8v5h-2V9.7l-4.7 5.4-4.1-3.1L5.4 18.4z"/></svg>
+            Performance
+          </a>
+          <a href="#health">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.4 7.7 8 9 4.6-1.3 8-4 8-9V6zm-1 12-3-3 1.4-1.4L11 12.2l4.6-4.6L17 9z"/></svg>
+            Data Health
+          </a>
         </nav>
 
-        <div class="sidebar-card">
-          <span>Source</span>
-          <strong id="sidebarSource">--</strong>
-          <small id="sidebarRefresh">--</small>
+        <div class="sidebar-bottom">
+          <div class="sidebar-card">
+            <div>
+              <span>Source</span>
+              <strong id="sidebarSource">--</strong>
+            </div>
+            <small id="sidebarRefresh">--</small>
+          </div>
+          <button id="refreshButton" class="refresh-button" type="button">Refresh</button>
+          <div class="pill-toggle currency-pill" role="group" aria-label="Currency display">
+            <button id="usdButton" class="active" type="button">USD</button>
+            <button id="myrButton" type="button">MYR</button>
+          </div>
+          <label class="switch-pill">
+            <span>Light</span>
+            <input id="themeToggle" type="checkbox" checked>
+            <i></i>
+            <span>Dark</span>
+          </label>
         </div>
       </aside>
 
       <main class="dashboard" id="dashboard">
-        <header class="utility-bar">
-          <label class="search-box">
-            <span>Search</span>
-            <input id="tickerSearch" type="search" placeholder="Filter ticker or name">
-          </label>
-          <div class="actions">
-            <label class="toggle">
-              <input id="themeToggle" type="checkbox" checked>
-              <span>Dark</span>
-            </label>
-            <label class="toggle">
-              <input id="currencyToggle" type="checkbox">
-              <span>MYR</span>
-            </label>
-            <button id="refreshButton" class="refresh-button" type="button">Refresh</button>
-          </div>
-        </header>
-
         <section class="dashboard-heading">
           <div>
             <p class="eyebrow">Local IBKR dashboard</p>
@@ -61,7 +73,13 @@
               <span id="dataSource">mock</span>
             </p>
           </div>
-          <div class="status-pill" id="refreshStatus" aria-live="polite">Ready</div>
+          <div class="heading-tools">
+            <label class="search-box">
+              <span>Search</span>
+              <input id="tickerSearch" type="search" placeholder="Filter ticker or name">
+            </label>
+            <div class="status-pill" id="refreshStatus" aria-live="polite">Ready</div>
+          </div>
         </section>
 
         <section id="staleWarning" class="warning" hidden></section>
@@ -108,21 +126,44 @@
                   <h2>Performance</h2>
                   <span id="historySummary">Daily history</span>
                 </div>
-                <strong id="portfolioValueRange">--</strong>
+                <div class="panel-actions">
+                  <div class="range-toggle" role="group" aria-label="Performance timeframe">
+                    <button data-range="1D" type="button">1D</button>
+                    <button data-range="WTD" type="button">WTD</button>
+                    <button data-range="MTD" type="button">MTD</button>
+                    <button data-range="YTD" type="button">YTD</button>
+                    <button class="active" data-range="ALL" type="button">ALL</button>
+                    <button data-range="1Y" type="button">1Y</button>
+                    <button data-range="5Y" type="button">5Y</button>
+                  </div>
+                  <div class="range-toggle benchmark-toggle" role="group" aria-label="Benchmark overlay">
+                    <button class="active" data-benchmark="portfolio" type="button">Portfolio</button>
+                    <button data-benchmark="QQQ" type="button">QQQ</button>
+                    <button data-benchmark="SPY" type="button">SPY</button>
+                  </div>
+                </div>
               </div>
+              <strong class="chart-range" id="portfolioValueRange">--</strong>
               <div class="history-viz" aria-label="Portfolio value and daily P&L history">
-                <div>
+                <div class="chart-block wide">
                   <div class="mini-chart-heading">
                     <span>Portfolio value</span>
                   </div>
-                  <div id="portfolioValueChart" class="mini-chart"></div>
+                  <div id="portfolioValueChart" class="mini-chart line-chart"></div>
                 </div>
-                <div>
+                <div class="chart-block">
                   <div class="mini-chart-heading">
                     <span>Daily P&amp;L</span>
                     <strong id="dailyPnlRange">--</strong>
                   </div>
                   <div id="dailyPnlChart" class="mini-chart pnl-chart"></div>
+                </div>
+                <div class="chart-block wide">
+                  <div class="mini-chart-heading">
+                    <span>Drawdown</span>
+                    <strong id="drawdownRange">--</strong>
+                  </div>
+                  <div id="drawdownChart" class="mini-chart drawdown-chart"></div>
                 </div>
               </div>
               <div class="table-wrap compact-table">
@@ -160,11 +201,21 @@
             <section class="panel">
               <div class="panel-heading">
                 <div>
-                  <h2>Top Positions</h2>
-                  <span>Largest statement holdings</span>
+                  <h2>Portfolio Heatmap</h2>
+                  <span>Weight by size, P&amp;L by color</span>
                 </div>
               </div>
-              <div id="topPositionsList" class="stack-list"></div>
+              <div id="topPositionsList" class="heatmap"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Risk &amp; Exposure</h2>
+                  <span>Estimated from local holdings</span>
+                </div>
+              </div>
+              <div id="riskMetricsList" class="risk-grid"></div>
             </section>
 
             <section class="panel refresh-card" id="health">
