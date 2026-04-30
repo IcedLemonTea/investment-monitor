@@ -38,6 +38,10 @@ body[data-theme="light"] {
   box-sizing: border-box;
 }
 
+.icon-sprite {
+  display: none;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -92,17 +96,11 @@ body {
 .brand-mark svg {
   width: 72px;
   height: 72px;
-  fill: color-mix(in srgb, var(--accent) 16%, transparent);
-  stroke: var(--accent-strong);
-  stroke-width: 1.7;
-}
-
-.brand-mark .brand-line {
   fill: none;
-  stroke: var(--text);
+  stroke: var(--accent-strong);
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 2.2;
 }
 
 .brand strong {
@@ -144,7 +142,11 @@ body {
 .side-nav a svg {
   width: 44px;
   height: 44px;
-  fill: currentColor;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
 }
 
 .side-nav a span {
@@ -296,7 +298,11 @@ h2 {
 .icon-button svg {
   width: 17px;
   height: 17px;
-  fill: currentColor;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
 }
 
 .sr-only {
@@ -863,6 +869,24 @@ th {
 
 .negative {
   color: var(--danger);
+}
+
+@media (max-width: 1280px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side-column {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .side-column > .panel:last-of-type {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 1040px) {
